@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { SiteProvider } from './context/SiteContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
@@ -18,25 +19,27 @@ import Admin from './pages/Admin';
 
 const App = () => {
   return (
-    <div className="app-container">
-      <Navbar />
-      <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/nosotros" element={<About />} />
-          <Route path="/servicios" element={<Services />} />
-          <Route path="/servicios/1" element={<ServiceDetail1 />} />
-          <Route path="/servicios/2" element={<ServiceDetail2 />} />
-          <Route path="/portafolio" element={<Portfolio />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:id" element={<BlogPost />} />
-          <Route path="/contacto" element={<Contact />} />
-          <Route path="/admin" element={<Admin />} />
-        </Routes>
-      </main>
-      <Footer />
-      <WhatsAppButton />
-    </div>
+    <SiteProvider>
+      <div className="app-container">
+        <Navbar />
+        <main>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/nosotros" element={<About />} />
+            <Route path="/servicios" element={<Services />} />
+            <Route path="/servicios/1" element={<ServiceDetail1 />} />
+            <Route path="/servicios/2" element={<ServiceDetail2 />} />
+            <Route path="/portafolio" element={<Portfolio />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:id" element={<BlogPost />} />
+            <Route path="/contacto" element={<Contact />} />
+            <Route path="/admin" element={<Admin />} />
+          </Routes>
+        </main>
+        <Footer />
+        <WhatsAppButton />
+      </div>
+    </SiteProvider>
   );
 };
 

@@ -20,7 +20,7 @@ const inputSt = {
   transition: 'border-color 0.2s',
 };
 const focus = e => (e.target.style.borderColor = 'var(--accent-primary)');
-const blur  = e => (e.target.style.borderColor = 'var(--glass-border)');
+const blur = e => (e.target.style.borderColor = 'var(--glass-border)');
 
 const sectionTitle = {
   fontFamily: 'var(--font-heading)', fontSize: '1.15rem', fontWeight: '800',
@@ -76,18 +76,18 @@ const StatCard = ({ label, val, sub, color, Icon }) => (
 
 // ─── Sidebar Sections ─────────────────────────────────────────────────────────
 const sections = [
-  { id: 'dashboard', label: 'Dashboard',     icon: <LayoutDashboard size={17} /> },
-  { id: 'theme',     label: 'Colores & Tema', icon: <Palette size={17} /> },
-  { id: 'general',   label: 'General',         icon: <Settings size={17} /> },
-  { id: 'seo',       label: 'SEO',             icon: <Globe size={17} /> },
-  { id: 'home',      label: 'Inicio',           icon: <Monitor size={17} /> },
-  { id: 'about',     label: 'Nosotros',         icon: <Info size={17} /> },
-  { id: 'services',  label: 'Servicios',        icon: <Zap size={17} /> },
-  { id: 'contact',   label: 'Contacto',         icon: <Mail size={17} /> },
-  { id: 'social',    label: 'Redes Sociales',   icon: <Globe size={17} /> },
-  { id: 'whatsapp',  label: 'WhatsApp',         icon: <MessageSquare size={17} /> },
-  { id: 'footer',    label: 'Footer',           icon: <FileText size={17} /> },
-  { id: 'images',    label: 'Imágenes',         icon: <ImageIcon size={17} /> },
+  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={17} /> },
+  { id: 'theme', label: 'Colores & Tema', icon: <Palette size={17} /> },
+  { id: 'general', label: 'General', icon: <Settings size={17} /> },
+  { id: 'seo', label: 'SEO', icon: <Globe size={17} /> },
+  { id: 'home', label: 'Inicio', icon: <Monitor size={17} /> },
+  { id: 'about', label: 'Nosotros', icon: <Info size={17} /> },
+  { id: 'services', label: 'Servicios', icon: <Zap size={17} /> },
+  { id: 'contact', label: 'Contacto', icon: <Mail size={17} /> },
+  { id: 'social', label: 'Redes Sociales', icon: <Globe size={17} /> },
+  { id: 'whatsapp', label: 'WhatsApp', icon: <MessageSquare size={17} /> },
+  { id: 'footer', label: 'Footer', icon: <FileText size={17} /> },
+  { id: 'images', label: 'Imágenes', icon: <ImageIcon size={17} /> },
 ];
 
 // ─── Main Admin Component ─────────────────────────────────────────────────────
@@ -113,7 +113,7 @@ const Admin = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
               <StatCard label="Páginas" val="10" sub="Todas activas" color="var(--accent-primary)" Icon={FileText} />
               <StatCard label="Secciones editables" val="12" sub="Textos e imágenes" color="var(--accent-secondary)" Icon={Settings} />
-              <StatCard label="Imágenes" val={`${[images.logo, images.heroBg, images.aboutHero, ...(images.portfolio||[])].filter(Boolean).length}/9`} sub="Subidas" color="#10b981" Icon={ImageIcon} />
+              <StatCard label="Imágenes" val={`${[images.logo, images.heroBg, images.aboutHero, ...(images.portfolio || [])].filter(Boolean).length}/9`} sub="Subidas" color="#10b981" Icon={ImageIcon} />
               <StatCard label="Tema activo" val="Custom" sub={`${theme.accentPrimary}`} color="#f59e0b" Icon={Palette} />
             </div>
 
@@ -184,19 +184,19 @@ const Admin = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
               <div>
-                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--accent-primary)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>🌈 Colores de Acento</h4>
+                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--accent-primary)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}> Colores de Acento</h4>
                 <ColorPicker label="Color Principal (Accent)" value={theme.accentPrimary} onChange={v => updateTheme('accentPrimary', v)} hint="Botones, links, acentos primarios" />
-                <ColorPicker label="Color Secundario"         value={theme.accentSecondary} onChange={v => updateTheme('accentSecondary', v)} hint="Gradientes, hover, detalles" />
+                <ColorPicker label="Color Secundario" value={theme.accentSecondary} onChange={v => updateTheme('accentSecondary', v)} hint="Gradientes, hover, detalles" />
               </div>
               <div>
-                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--accent-secondary)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>🖤 Colores de Fondo</h4>
-                <ColorPicker label="Fondo Principal"  value={theme.bgPrimary}   onChange={v => updateTheme('bgPrimary', v)} hint="Color de fondo del cuerpo" />
+                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--accent-secondary)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}> Colores de Fondo</h4>
+                <ColorPicker label="Fondo Principal" value={theme.bgPrimary} onChange={v => updateTheme('bgPrimary', v)} hint="Color de fondo del cuerpo" />
                 <ColorPicker label="Fondo Secundario" value={theme.bgSecondary} onChange={v => updateTheme('bgSecondary', v)} hint="Cards, navbar, sidebar" />
-                <ColorPicker label="Fondo Terciario"  value={theme.bgTertiary}  onChange={v => updateTheme('bgTertiary', v)} hint="Footer, elementos anidados" />
+                <ColorPicker label="Fondo Terciario" value={theme.bgTertiary} onChange={v => updateTheme('bgTertiary', v)} hint="Footer, elementos anidados" />
               </div>
               <div>
-                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', marginBottom: '1.5rem', color: '#10b981', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>📝 Colores de Texto</h4>
-                <ColorPicker label="Texto Principal"  value={theme.textPrimary}   onChange={v => updateTheme('textPrimary', v)} hint="Títulos y texto destacado" />
+                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', marginBottom: '1.5rem', color: '#10b981', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}> Colores de Texto</h4>
+                <ColorPicker label="Texto Principal" value={theme.textPrimary} onChange={v => updateTheme('textPrimary', v)} hint="Títulos y texto destacado" />
                 <ColorPicker label="Texto Secundario" value={theme.textSecondary} onChange={v => updateTheme('textSecondary', v)} hint="Subtítulos, descripciones" />
               </div>
             </div>
@@ -207,7 +207,7 @@ const Admin = () => {
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                 {[
                   { name: 'Azul (default)', p: '#3b82f6', s: '#8b5cf6', bg: '#050505' },
-                  { name: '🟢 Esmeralda',  p: '#10b981', s: '#06b6d4', bg: '#050a08' },
+                  { name: '🟢 Esmeralda', p: '#10b981', s: '#06b6d4', bg: '#050a08' },
                   { name: '🔴 Rojo & Fuego', p: '#ef4444', s: '#f97316', bg: '#080505' },
                   { name: '🟡 Dorado', p: '#f59e0b', s: '#d97706', bg: '#06050a' },
                   { name: '🩷 Rosa Neon', p: '#ec4899', s: '#a855f7', bg: '#050508' },

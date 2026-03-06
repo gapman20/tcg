@@ -67,6 +67,16 @@ const Footer = () => {
                 </Link>
               </li>
             ))}
+            {/* Admin link — separated and very subtle */}
+            <li style={{ marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <Link to="/admin"
+                style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.82rem', opacity: 0.45, display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = 1; e.currentTarget.style.color = 'var(--accent-primary)'; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = 0.45; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+              >
+                ⚙️ Panel Admin
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -86,12 +96,6 @@ const Footer = () => {
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
           © {new Date().getFullYear()} {content.footer.copyright}
         </p>
-        <Link to="/admin" style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', opacity: 0.5, textDecoration: 'none', transition: 'opacity 0.2s' }}
-          onMouseEnter={e => e.currentTarget.style.opacity = 1}
-          onMouseLeave={e => e.currentTarget.style.opacity = 0.5}
-        >
-          ⚙️ Admin
-        </Link>
       </div>
     </footer>
   );

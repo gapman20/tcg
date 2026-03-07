@@ -32,8 +32,8 @@ const Services = () => {
             }}>
                {srv.icon}
             </div>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>{srv.title}</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', flex: 1 }}>{srv.desc}</p>
+            <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>{srv.title}</h3>
+            <p style={{ marginBottom: '2rem', flex: 1 }}>{srv.desc}</p>
             <Link to={srv.link} className="btn-outline" style={{ display: 'inline-flex', padding: '10px 20px', fontSize: '0.95rem', alignSelf: 'flex-start' }}>
               Ver Estrategia <ArrowRight size={18} style={{ marginLeft: '6px' }} />
             </Link>

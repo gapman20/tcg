@@ -51,8 +51,8 @@ const Home = () => {
             ].map((feat, i) => (
               <div key={i} className={`glass-card animate-fade-up delay-${(i + 1) * 100}`}>
                 <div className="icon-wrapper">{feat.icon}</div>
-                <h3 style={{ fontSize: '1.4rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>{feat.title}</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>{feat.desc}</p>
+                <h3 style={{ fontSize: '1.4rem', marginBottom: '1rem' }}>{feat.title}</h3>
+                <p>{feat.desc}</p>
               </div>
             ))}
           </div>

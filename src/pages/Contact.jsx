@@ -35,8 +35,8 @@ const Contact = () => {
                     {item.icon}
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '1rem', marginBottom: '0.2rem', color: 'var(--text-primary)' }}>{item.label}</h4>
-                    <p style={{ color: 'var(--text-secondary)' }}>{item.val}</p>
+                    <h4 style={{ fontSize: '1rem', marginBottom: '0.2rem' }}>{item.label}</h4>
+                    <p>{item.val}</p>
                   </div>
                 </div>
               ))}
@@ -44,7 +44,7 @@ const Contact = () => {
           </div>
 
           <div className="glass-card" style={{ padding: '1.5rem', overflow: 'hidden' }}>
-            <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Encuéntranos</h4>
+            <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Encuéntranos</h4>
             <div style={{ borderRadius: '12px', overflow: 'hidden', height: '300px' }}>
               <LocationMap center={[c.mapLat || 19.4326, c.mapLng || -99.1332]} zoom={14} />
             </div>
@@ -55,20 +55,20 @@ const Contact = () => {
         <div className="glass-card animate-fade-up delay-200" style={{ position: 'sticky', top: '120px' }}>
           <form style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <h3 className="h2-premium" style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Solicitar Presupuesto</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Déjanos conocer un poco sobre tus objetivos.</p>
+            <p style={{ marginBottom: '1.5rem' }}>Déjanos conocer un poco sobre tus objetivos.</p>
 
             {[
               { label: 'Nombre o Empresa', type: 'text', placeholder: 'Ej. Juan Pérez' },
               { label: 'Correo Electrónico', type: 'email', placeholder: 'correo@empresa.com' },
             ].map((f, i) => (
               <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>{f.label}</label>
+                <label style={{ fontSize: '0.9rem', fontWeight: '500', color: 'var(--text-card-secondary)' }}>{f.label}</label>
                 <input type={f.type} placeholder={f.placeholder} style={{ width: '100%', padding: '16px', background: 'rgba(5,5,5,0.5)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '12px', fontFamily: 'var(--font-body)', outline: 'none', transition: 'border-color 0.3s' }} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--glass-border)'} />
               </div>
             ))}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>¿Qué necesitas?</label>
+              <label style={{ fontSize: '0.9rem', fontWeight: '500', color: 'var(--text-card-secondary)' }}>¿Qué necesitas?</label>
               <textarea placeholder="Cuéntanos sobre tu negocio..." rows="5" style={{ width: '100%', padding: '16px', background: 'rgba(5,5,5,0.5)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '12px', resize: 'vertical', fontFamily: 'var(--font-body)', outline: 'none', transition: 'border-color 0.3s' }} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--glass-border)'}></textarea>
             </div>
 

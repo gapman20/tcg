@@ -83,6 +83,7 @@ const sections = [
   { id: 'home', label: 'Inicio', icon: <Monitor size={17} /> },
   { id: 'about', label: 'Nosotros', icon: <Info size={17} /> },
   { id: 'services', label: 'Servicios', icon: <Zap size={17} /> },
+  { id: 'blog', label: 'Blog', icon: <FileText size={17} /> },
   { id: 'contact', label: 'Contacto', icon: <Mail size={17} /> },
   { id: 'social', label: 'Redes Sociales', icon: <Globe size={17} /> },
   { id: 'whatsapp', label: 'WhatsApp', icon: <MessageSquare size={17} /> },
@@ -96,10 +97,12 @@ const Admin = () => {
     content, updateContent, updateServiceCard,
     images, updateImage,
     theme, updateTheme, resetTheme,
+    blogPosts = [], createBlogPost, updateBlogPost, deleteBlogPost, duplicateBlogPost,
     saveContent, resetContent, saveStatus,
   } = useSite();
 
   const [active, setActive] = useState('dashboard');
+  const [editPost, setEditPost] = useState(null);
   const onChange = (path, val) => updateContent(path, val);
 
   const renderSection = () => {
@@ -191,13 +194,21 @@ const Admin = () => {
               <div>
                 <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--accent-secondary)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}> Colores de Fondo</h4>
                 <ColorPicker label="Fondo Principal" value={theme.bgPrimary} onChange={v => updateTheme('bgPrimary', v)} hint="Color de fondo del cuerpo" />
-                <ColorPicker label="Fondo Secundario" value={theme.bgSecondary} onChange={v => updateTheme('bgSecondary', v)} hint="Cards, navbar, sidebar" />
+                <ColorPicker label="Fondo Secundario" value={theme.bgSecondary} onChange={v => updateTheme('bgSecondary', v)} hint="Base secundaria" />
                 <ColorPicker label="Fondo Terciario" value={theme.bgTertiary} onChange={v => updateTheme('bgTertiary', v)} hint="Footer, elementos anidados" />
+                <ColorPicker label="Fondo Navbar (Menu)" value={theme.navbarColor || theme.bgSecondary} onChange={v => updateTheme('navbarColor', v)} hint="Color de fondo y blur superior" />
+                <ColorPicker label="Fondo Tarjetas (Glass)" value={theme.cardBg || theme.bgSecondary} onChange={v => updateTheme('cardBg', v)} hint="Tarjetas, editor y paneles" />
               </div>
               <div>
-                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', marginBottom: '1.5rem', color: '#10b981', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}> Colores de Texto</h4>
-                <ColorPicker label="Texto Principal" value={theme.textPrimary} onChange={v => updateTheme('textPrimary', v)} hint="Títulos y texto destacado" />
-                <ColorPicker label="Texto Secundario" value={theme.textSecondary} onChange={v => updateTheme('textSecondary', v)} hint="Subtítulos, descripciones" />
+                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', marginBottom: '1.5rem', color: '#10b981', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}> Colores de Texto Generales</h4>
+                <ColorPicker label="Texto Principal" value={theme.textPrimary} onChange={v => updateTheme('textPrimary', v)} hint="Títulos y texto destacado globales" />
+                <ColorPicker label="Texto Secundario" value={theme.textSecondary} onChange={v => updateTheme('textSecondary', v)} hint="Subtítulos, descripciones globales" />
+
+                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', marginTop: '2.5rem', marginBottom: '1.5rem', color: '#ef4444', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}> Textos por Módulo (Específicos)</h4>
+                <ColorPicker label="Texto Navbar (Principal)" value={theme.textNavbarPrimary || theme.textPrimary} onChange={v => updateTheme('textNavbarPrimary', v)} hint="Logo y links al hacer hover en Navbar" />
+                <ColorPicker label="Texto Navbar (Secundario)" value={theme.textNavbarSecondary || theme.textSecondary} onChange={v => updateTheme('textNavbarSecondary', v)} hint="Links inactivos en el Navbar" />
+                <ColorPicker label="Texto Cards (Principal)" value={theme.textCardPrimary || theme.textPrimary} onChange={v => updateTheme('textCardPrimary', v)} hint="Títulos dentro de las tarjetas Glass" />
+                <ColorPicker label="Texto Cards (Secundario)" value={theme.textCardSecondary || theme.textSecondary} onChange={v => updateTheme('textCardSecondary', v)} hint="Descripciones dentro de las tarjetas" />
               </div>
             </div>
 
@@ -319,6 +330,111 @@ const Admin = () => {
                 <Field label="Texto Visión" path="about.visionText" value={content.about.visionText} onChange={onChange} type="textarea" />
               </div>
             </div>
+          </div>
+        );
+
+      case 'blog':
+        return (
+          <div>
+            <h3 style={sectionTitle}><FileText size={20} color="var(--accent-primary)" /> Entradas de Blog</h3>
+
+            {!editPost ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 300px) 1fr', gap: '2rem' }}>
+                {/* LIST */}
+                <div style={{ borderRight: '1px solid var(--glass-border)', paddingRight: '2rem' }}>
+                  <button className="btn-primary" onClick={() => setEditPost(createBlogPost())} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px' }}>
+                    + Nuevo Artículo
+                  </button>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                    {blogPosts.map(post => (
+                      <div key={post.id}
+                        onClick={() => setEditPost(post.id)}
+                        style={{ padding: '12px 14px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '8px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all 0.2s', borderLeft: post.published ? '3px solid #10b981' : '3px solid #f59e0b' }}
+                        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
+                        onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}
+                      >
+                        <div style={{ overflow: 'hidden' }}>
+                          <h5 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', marginBottom: '4px' }}>{post.title || 'Sin Título'}</h5>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{post.date} • {post.published ? 'Público' : 'Borrador'}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {blogPosts.length === 0 && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '1rem' }}>No hay artículos aún.</p>}
+                  </div>
+                </div>
+                {/* STATS/PLACEHOLDER */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                  <FileText size={48} color="var(--glass-border)" style={{ marginBottom: '1rem' }} />
+                  <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)' }}>Selecciona un artículo para editar</p>
+                  <p style={{ fontSize: '0.85rem' }}>o crea uno nuevo para empezar a escribir.</p>
+                </div>
+              </div>
+            ) : (
+              // EDITOR
+              <div style={{ border: '1px solid var(--glass-border)', borderRadius: '12px', background: 'var(--bg-secondary)', overflow: 'hidden' }}>
+                <div style={{ padding: '14px 20px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <button onClick={() => setEditPost(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                    ← Volver a la lista
+                  </button>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={() => { duplicateBlogPost(editPost); setEditPost(null); }} style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', color: 'white', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>Duplicar</button>
+                    <button onClick={() => { if (confirm('¿Seguro que deseas eliminar este artículo?')) { deleteBlogPost(editPost); setEditPost(null); } }} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>Eliminar</button>
+                  </div>
+                </div>
+
+                {blogPosts.filter(p => p.id === editPost).map(post => (
+                  <div key={post.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 300px' }}>
+
+                    {/* Main Editor Fields */}
+                    <div style={{ padding: '2rem', borderRight: '1px solid var(--glass-border)' }}>
+                      <div style={{ marginBottom: '1.5rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Título del Artículo</label>
+                        <input value={post.title} onChange={e => updateBlogPost(post.id, 'title', e.target.value)} style={{ ...inputSt, fontSize: '1.2rem', padding: '14px', fontFamily: 'var(--font-heading)', fontWeight: 'bold' }} />
+                      </div>
+
+                      <div style={{ marginBottom: '1.5rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Extracto (Resumen corto)</label>
+                        <textarea value={post.excerpt} onChange={e => updateBlogPost(post.id, 'excerpt', e.target.value)} rows={2} style={inputSt} />
+                      </div>
+
+                      <div style={{ marginBottom: '1.5rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Contenido Completo (Markdown / Texto)</label>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>💡 Tip: Presiona Enter dos veces para crear un nuevo párrafo.</div>
+                        <textarea value={post.content} onChange={e => updateBlogPost(post.id, 'content', e.target.value)} rows={15} style={{ ...inputSt, fontFamily: 'monospace', lineHeight: '1.6', fontSize: '0.9rem' }} />
+                      </div>
+                    </div>
+
+                    {/* Meta Sidebar */}
+                    <div style={{ padding: '2rem', background: 'rgba(255,255,255,0.01)' }}>
+                      <div style={{ marginBottom: '2rem', padding: '1rem', background: post.published ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)', border: `1px solid ${post.published ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}`, borderRadius: '8px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: 'white', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                          <input type="checkbox" checked={post.published} onChange={e => updateBlogPost(post.id, 'published', e.target.checked)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                          {post.published ? '🟢 Estado: Publicado (Visible)' : '🟡 Estado: Borrador (Oculto)'}
+                        </label>
+                      </div>
+
+                      <div style={{ marginBottom: '1.5rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Autor</label>
+                        <input value={post.author} onChange={e => updateBlogPost(post.id, 'author', e.target.value)} style={inputSt} />
+                      </div>
+
+                      <div style={{ marginBottom: '1.5rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Fecha de Publicación</label>
+                        <input value={post.date} onChange={e => updateBlogPost(post.id, 'date', e.target.value)} style={inputSt} />
+                      </div>
+
+                      <div style={{ marginBottom: '2rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Etiquetas (Tags)</label>
+                        <input value={post.tags} onChange={e => updateBlogPost(post.id, 'tags', e.target.value)} placeholder="Ej: diseño, marketing, tips" style={inputSt} />
+                      </div>
+
+                      <ImageUploader label="Imagen de Portada (Opcional)" description="Recomendado: 1200x630 px. Máx 2MB" value={post.image} onChange={val => updateBlogPost(post.id, 'image', val)} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         );
 

@@ -61,7 +61,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.03em;
-  background: linear-gradient(to right, #ffffff 20%, #a1a1aa 100%);
+  background: linear-gradient(to right, var(--text-primary) 20%, var(--text-secondary) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -119,12 +119,12 @@ main {
   left: 0;
   width: 100%;
   height: var(--nav-height);
-  background: rgba(5, 5, 5, 0.75);
+  background: var(--nav-bg, rgba(5, 5, 5, 0.85));
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--glass-border);
   z-index: 1000;
-  transition: all var(--transition-normal);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .navbar-container {
@@ -148,7 +148,7 @@ main {
 }
 
 .navbar-logo span {
-  color: var(--text-primary);
+  color: var(--text-navbar-primary, var(--text-primary));
 }
 
 .nav-menu {
@@ -161,14 +161,14 @@ main {
   font-family: var(--font-heading);
   font-size: 1rem;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-navbar-secondary, var(--text-secondary));
   transition: color var(--transition-fast);
   position: relative;
   padding: 0.5rem 0;
 }
 
 .nav-links:hover {
-  color: var(--text-primary);
+  color: var(--text-navbar-primary, var(--text-primary));
 }
 
 .nav-links::after {
@@ -191,7 +191,7 @@ main {
 .menu-icon {
   display: none;
   cursor: pointer;
-  color: var(--text-primary);
+  color: var(--text-navbar-primary, var(--text-primary));
 }
 
 @media screen and (max-width: 968px) {
@@ -207,10 +207,10 @@ main {
     right: -100%;
     width: 100%;
     height: 100vh;
-    background-color: rgba(5, 5, 5, 0.98);
+    background-color: var(--nav-menu-bg, rgba(5, 5, 5, 0.98));
     backdrop-filter: blur(20px);
     padding: 8rem 2rem 2rem;
-    transition: right var(--transition-bounce);
+    transition: right var(--transition-bounce), background-color 0.3s ease;
     gap: 2.5rem;
     align-items: center;
   }
@@ -296,6 +296,11 @@ main {
   padding: 2.5rem;
   backdrop-filter: blur(10px);
   transition: transform var(--transition-bounce), border-color var(--transition-fast), box-shadow var(--transition-normal);
+  color: var(--text-card-secondary, var(--text-secondary));
+}
+
+.glass-card h1, .glass-card h2, .glass-card h3, .glass-card h4, .glass-card h5, .glass-card h6 {
+  color: var(--text-card-primary, var(--text-primary));
 }
 
 .glass-card:hover {

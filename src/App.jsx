@@ -4,6 +4,7 @@ import { SiteProvider, useSite } from './context/SiteContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
+import ScrollToTop from './components/ScrollToTop';
 
 // Pages
 import Home from './pages/Home';
@@ -33,6 +34,7 @@ const AppContent = () => {
 
   return (
     <div className="app-container">
+      <ScrollToTop />
       <Navbar />
       <main>
         <Routes>

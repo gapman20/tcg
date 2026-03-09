@@ -4,12 +4,17 @@ import { Lock } from 'lucide-react';
 
 const Login = () => {
   const { login } = useSite();
+  const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!login(pass)) setError(true);
+    setLoading(true);
+    const success = await login(email, pass);
+    if (!success) setError(true);
+    setLoading(false);
   };
 
   return (
@@ -19,19 +24,28 @@ const Login = () => {
           <Lock size={30} />
         </div>
         <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', fontWeight: '800', marginBottom: '0.5rem' }}>Acceso Restringido</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '0.9rem' }}>Ingresa la contraseña maestra para administrar el sitio.</p>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '0.9rem' }}>Ingresa tus credenciales para administrar el sitio.</p>
         
         <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <input 
+            type="email" 
+            placeholder="Correo electrónico" 
+            value={email} 
+            onChange={(e) => { setEmail(e.target.value); setError(false); }}
+            style={{ width: '100%', padding: '14px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${error ? '#ef4444' : 'var(--glass-border)'}`, color: 'white', borderRadius: '8px', outline: 'none' }} 
+            required
+          />
           <input 
             type="password" 
             placeholder="Contraseña" 
             value={pass} 
             onChange={(e) => { setPass(e.target.value); setError(false); }}
             style={{ width: '100%', padding: '14px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${error ? '#ef4444' : 'var(--glass-border)'}`, color: 'white', borderRadius: '8px', outline: 'none' }} 
+            required
           />
-          {error && <span style={{ color: '#ef4444', fontSize: '0.8rem', textAlign: 'left', marginTop: '-0.5rem' }}>Contraseña incorrecta</span>}
-          <button type="submit" className="btn-primary" style={{ marginTop: '0.5rem', justifyContent: 'center' }}>
-            Ingresar al Panel
+          {error && <span style={{ color: '#ef4444', fontSize: '0.8rem', textAlign: 'left', marginTop: '-0.5rem' }}>Credenciales incorrectas</span>}
+          <button type="submit" disabled={loading} className="btn-primary" style={{ marginTop: '0.5rem', justifyContent: 'center', opacity: loading ? 0.7 : 1 }}>
+            {loading ? 'Verificando...' : 'Ingresar al Panel'}
           </button>
         </form>
       </div>

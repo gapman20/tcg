@@ -5,7 +5,7 @@ import { useSite } from '../context/SiteContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { content } = useSite();
+  const { content, pages } = useSite();
 
   return (
     <nav className="navbar">
@@ -26,11 +26,11 @@ const Navbar = () => {
         </div>
 
         <ul className={isOpen ? 'nav-menu active' : 'nav-menu'}>
-          <li><Link to="/" className="nav-links" onClick={() => setIsOpen(false)}>Inicio</Link></li>
-          <li><Link to="/nosotros" className="nav-links" onClick={() => setIsOpen(false)}>Nosotros</Link></li>
-          <li><Link to="/servicios" className="nav-links" onClick={() => setIsOpen(false)}>Servicios</Link></li>
-          <li><Link to="/portafolio" className="nav-links" onClick={() => setIsOpen(false)}>Portafolio</Link></li>
-          <li><Link to="/blog" className="nav-links" onClick={() => setIsOpen(false)}>Blog</Link></li>
+          {pages.filter(p => p.active).map(page => (
+            <li key={page.id}>
+              <Link to={page.path} className="nav-links" onClick={() => setIsOpen(false)}>{page.name}</Link>
+            </li>
+          ))}
           <li style={{ marginLeft: isOpen ? '0' : '1rem' }}>
             <Link to="/contacto" className="btn-primary" onClick={() => setIsOpen(false)} style={{ padding: '10px 24px', fontSize: '0.95rem' }}>
               {content.ctaButton}

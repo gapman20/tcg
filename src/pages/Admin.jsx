@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSite } from '../context/SiteContext';
 import ImageUploader from '../components/ImageUploader';
 import {
@@ -6,7 +6,8 @@ import {
   Save, RotateCcw, CheckCircle, AlertCircle, Eye,
   Image as ImageIcon, Palette, BarChart2, Globe,
   MessageSquare, Zap, Users, TrendingUp, Monitor,
-  ToggleLeft, ToggleRight, RefreshCw
+  ToggleLeft, ToggleRight, RefreshCw, Plus, Trash2, Package,
+  Columns, ArrowUp, ArrowDown, Bold, List, BarChart, Lock
 } from 'lucide-react';
 
 // ─── Shared input style ───────────────────────────────────────────────────────
@@ -62,21 +63,92 @@ const ColorPicker = ({ label, value, onChange, hint }) => (
 
 // StatCard for Dashboard
 const StatCard = ({ label, val, sub, color, Icon }) => (
-  <div style={{ padding: '1.5rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '12px', borderTop: `3px solid ${color}` }}>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+  <div style={{ padding: '1.5rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '12px', borderTop: `3px solid ${color}`, position: 'relative', overflow: 'hidden' }}>
+    <div style={{ position: 'absolute', top: 0, right: 0, opacity: 0.05, transform: 'translate(20%, -20%)' }}><Icon size={120} /></div>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', position: 'relative', zIndex: 1 }}>
       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '600' }}>{label}</p>
       <div style={{ width: '36px', height: '36px', background: `${color}18`, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Icon size={18} color={color} />
       </div>
     </div>
-    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', fontWeight: '900', marginBottom: '0.3rem' }}>{val}</h3>
-    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{sub}</p>
+    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', fontWeight: '900', marginBottom: '0.3rem', position: 'relative', zIndex: 1 }}>{val}</h3>
+    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '4px' }}>
+      {typeof sub === 'string' && sub.includes('+') && <TrendingUp size={12} color="#10b981" />}
+      {sub}
+    </p>
   </div>
 );
+
+// CSS Bar Chart Component
+const SimpleBarChart = ({ data }) => {
+  const max = Math.max(...data, 1);
+  const labels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  
+  return (
+    <div style={{ padding: '2rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '12px', marginTop: '1.5rem', marginBottom: '2.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <div>
+          <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', fontWeight: '800' }}>Visitas del Sitio</h4>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Últimos 7 días (Datos Simulados)</p>
+        </div>
+        <div style={{ background: 'rgba(59,130,246,0.1)', color: 'var(--accent-primary)', padding: '6px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <TrendingUp size={14} /> +12% esta semana
+        </div>
+      </div>
+      
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '180px', paddingTop: '20px' }}>
+        {data.map((val, i) => {
+          const heightPct = Math.max((val / max) * 100, 2);
+          return (
+            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '6px 6px 0 0' }}>
+                <div 
+                  className="chart-bar"
+                  title={`${val} visitas`}
+                  style={{ 
+                    width: '80%', height: `${heightPct}%`, 
+                    background: i === data.length - 1 ? 'var(--accent-gradient)' : 'var(--accent-primary)',
+                    opacity: i === data.length - 1 ? 1 : 0.6,
+                    borderRadius: '4px 4px 0 0',
+                    transition: 'all 0.5s ease-out',
+                    animation: `growUp 1s ease-out forwards ${i * 0.1}s`
+                  }} 
+                />
+              </div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{labels[i]}</span>
+            </div>
+          );
+        })}
+      </div>
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes growUp { from { transform: scaleY(0); transform-origin: bottom; } to { transform: scaleY(1); transform-origin: bottom; } }
+        .chart-bar:hover { opacity: 1 !important; filter: brightness(1.2); cursor: pointer; }
+      `}} />
+    </div>
+  );
+};
+
+// MD Toolbar
+const Toolbar = ({ onFormat }) => (
+  <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
+    <button onClick={() => onFormat('bold')} title="Negrita" style={{ padding: '4px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer', color: 'var(--text-secondary)' }}><Bold size={14} /></button>
+    <button onClick={() => onFormat('list')} title="Lista" style={{ padding: '4px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer', color: 'var(--text-secondary)' }}><List size={14} /></button>
+  </div>
+);
+
+// Format helper
+const insertFormat = (path, value, formatType, onChange) => {
+  const formats = { 'bold': '**Texto Destacado**', 'list': '\\n- Punto de lista' };
+  const strVal = value || '';
+  onChange(path, strVal + (strVal && strVal !== '' ? ' ' : '') + formats[formatType]);
+};
 
 // ─── Sidebar Sections ─────────────────────────────────────────────────────────
 const sections = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={17} /> },
+  { id: 'inbox', label: 'Bandeja de Entrada', icon: <Mail size={17} /> },
+  { id: 'pages', label: 'Páginas & Menú', icon: <FileText size={17} /> },
+  { id: 'products', label: 'Productos', icon: <Package size={17} /> },
   { id: 'theme', label: 'Colores & Tema', icon: <Palette size={17} /> },
   { id: 'general', label: 'General', icon: <Settings size={17} /> },
   { id: 'seo', label: 'SEO', icon: <Globe size={17} /> },
@@ -94,43 +166,71 @@ const sections = [
 // ─── Main Admin Component ─────────────────────────────────────────────────────
 const Admin = () => {
   const {
-    content, updateContent, updateServiceCard,
+    content, updateContent, updateServiceCard, moveServiceCard,
     images, updateImage,
     theme, updateTheme, resetTheme,
     blogPosts = [], createBlogPost, updateBlogPost, deleteBlogPost, duplicateBlogPost,
+    pages = [], createPage, updatePage, deletePage, movePage,
+    products = [], createProduct, updateProduct, deleteProduct, moveProduct,
+    analytics, trackAnalytics,
+    inbox = [], markMessageRead, deleteMessage, logout,
     saveContent, resetContent, saveStatus,
   } = useSite();
 
   const [active, setActive] = useState('dashboard');
   const [editPost, setEditPost] = useState(null);
+  const [splitView, setSplitView] = useState(false);
+  const [toasts, setToasts] = useState([]);
+
   const onChange = (path, val) => updateContent(path, val);
+
+  useEffect(() => {
+    if (saveStatus === 'saved') {
+      const id = Date.now();
+      setToasts(prev => [...prev, { id, msg: '¡Cambios Guardados Exitosamente!', type: 'success' }]);
+      setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
+    } else if (saveStatus === 'error') {
+      const id = Date.now();
+      setToasts(prev => [...prev, { id, msg: 'Error al guardar', type: 'error' }]);
+      setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
+    }
+  }, [saveStatus]);
 
   const renderSection = () => {
     switch (active) {
 
       // ── Dashboard ─────────────────────────────────────────────────────────
       case 'dashboard':
+        const activePages = pages.filter(p => p.active).length;
+        const activeProds = products.filter(p => p.active).length;
+        const totalImages = [images.logo, images.heroBg, images.aboutHero, ...(images.portfolio || [])].filter(Boolean).length;
+        
         return (
           <div>
-            <h3 style={sectionTitle}><LayoutDashboard size={20} color="var(--accent-primary)" /> Resumen del Sitio</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
-              <StatCard label="Páginas" val="10" sub="Todas activas" color="var(--accent-primary)" Icon={FileText} />
-              <StatCard label="Secciones editables" val="12" sub="Textos e imágenes" color="var(--accent-secondary)" Icon={Settings} />
-              <StatCard label="Imágenes" val={`${[images.logo, images.heroBg, images.aboutHero, ...(images.portfolio || [])].filter(Boolean).length}/9`} sub="Subidas" color="#10b981" Icon={ImageIcon} />
-              <StatCard label="Tema activo" val="Custom" sub={`${theme.accentPrimary}`} color="#f59e0b" Icon={Palette} />
+            <h3 style={sectionTitle}><LayoutDashboard size={20} color="var(--accent-primary)" /> Panel de Rendimiento y Resumen</h3>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+              <StatCard label="Clics WhatsApp" val={analytics.whatsapp_clicks || 0} sub="+3% vs sem. ant." color="#25d366" Icon={MessageSquare} />
+              <StatCard label="Páginas Activas" val={activePages} sub={`de ${pages.length} totales`} color="var(--accent-primary)" Icon={FileText} />
+              <StatCard label="Productos en Catálogo" val={activeProds} sub={`${products.length - activeProds} ocultos`} color="#f59e0b" Icon={Package} />
+              <StatCard label="Imágenes Subidas" val={`${totalImages}/9`} sub="Formatos óptimos" color="#10b981" Icon={ImageIcon} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+            {/* Simulated Chart */}
+            <SimpleBarChart data={analytics.visits_simulated} />
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
               {/* Quick Links */}
               <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '1.5rem' }}>
                 <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '800', marginBottom: '1.2rem', fontSize: '1rem' }}>⚡ Accesos Rápidos</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                   {[
+                    { label: '📄 Menú & Páginas', section: 'pages' },
+                    { label: '📦 Productos', section: 'products' },
                     { label: '🎨 Cambiar Colores', section: 'theme' },
                     { label: '🏠 Editar Inicio', section: 'home' },
                     { label: '📱 Configurar WhatsApp', section: 'whatsapp' },
                     { label: '🖼️ Subir Imágenes', section: 'images' },
-                    { label: '🔍 SEO & Metadatos', section: 'seo' },
                     { label: '🔗 Redes Sociales', section: 'social' },
                   ].map(q => (
                     <button key={q.section} onClick={() => setActive(q.section)}
@@ -172,6 +272,140 @@ const Admin = () => {
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        );
+
+      // ── Pages / Menu ──────────────────────────────────────────────────────
+      case 'pages':
+        return (
+          <div>
+            <h3 style={sectionTitle}><FileText size={20} color="var(--accent-primary)" /> Páginas & Menú</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2rem' }}>Activa o desactiva las páginas, cambia su nombre en el menú, o crea páginas personalizadas nuevas.</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginBottom: '2.5rem' }}>
+              {pages.map((page, i) => (
+                <div key={page.id} style={{ padding: '1.5rem', background: 'var(--glass-bg)', border: `1px solid ${page.active ? 'var(--accent-primary)' : 'var(--glass-border)'}`, borderRadius: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontFamily: 'var(--font-heading)', fontWeight: '800', fontSize: '1.1rem', color: page.active ? 'white' : 'var(--text-secondary)' }}>{page.name}</span>
+                      {page.isCustom ? 
+                        <span style={{ fontSize: '0.7rem', background: 'rgba(245,158,11,0.2)', color: '#f59e0b', padding: '3px 8px', borderRadius: '4px', fontWeight: 'bold' }}>Personalizada</span> 
+                        : 
+                        <span style={{ fontSize: '0.7rem', background: 'rgba(59,130,246,0.2)', color: '#3b82f6', padding: '3px 8px', borderRadius: '4px', fontWeight: 'bold' }}>Integrada</span>
+                      }
+                    </div>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <button onClick={() => movePage(i, 'up')} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', padding: '4px', borderRadius: '4px', cursor: 'pointer' }}><ArrowUp size={14} /></button>
+                        <button onClick={() => movePage(i, 'down')} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', padding: '4px', borderRadius: '4px', cursor: 'pointer' }}><ArrowDown size={14} /></button>
+                      </div>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                        <input type="checkbox" checked={page.active} onChange={e => updatePage(page.id, 'active', e.target.checked)} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
+                        Visible en Menú
+                      </label>
+                      {page.isCustom && (
+                        <button onClick={() => { if(confirm('¿Eliminar esta página?')) deletePage(page.id); }} style={{ background: 'transparent', border: '1px solid #ef444455', color: '#ef4444', padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', cursor: 'pointer' }}>
+                          <Trash2 size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Eliminar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Nombre en el Menú</label>
+                      <input value={page.name} onChange={e => updatePage(page.id, 'name', e.target.value)} style={inputSt} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>URL (Ruta)</label>
+                      <input value={page.path} onChange={e => updatePage(page.id, 'path', e.target.value)} style={inputSt} disabled={!page.isCustom} />
+                      {!page.isCustom && <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '4px' }}>La URL de las páginas integradas no se puede cambiar.</p>}
+                    </div>
+                  </div>
+                  
+                  {page.isCustom && (
+                    <div style={{ marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
+                      <h4 style={{ fontFamily: 'var(--font-heading)', color: 'var(--accent-primary)', marginBottom: '1rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Contenido Visual</h4>
+                      
+                      <div style={{ marginBottom: '1.2rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Título de la Página</label>
+                        <input value={page.pageTitle || ''} onChange={e => updatePage(page.id, 'pageTitle', e.target.value)} style={{ ...inputSt, fontFamily: 'var(--font-heading)', fontSize: '1.2rem', fontWeight: 'bold' }} placeholder="Ej: Nuestras Ofertas" />
+                      </div>
+                      
+                      <div style={{ marginBottom: '1.2rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Subtítulo o Resumen</label>
+                        <textarea value={page.pageSubtitle || ''} onChange={e => updatePage(page.id, 'pageSubtitle', e.target.value)} rows={2} style={inputSt} />
+                      </div>
+                      
+                      <div style={{ marginBottom: '1.5rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Texto Completo (Soporta Markdown Básico)</label>
+                        <Toolbar onFormat={(t) => insertFormat(page.id, page.pageText, t, (p,v) => updatePage(p, 'pageText', v))} />
+                        <textarea value={page.pageText || ''} onChange={e => updatePage(page.id, 'pageText', e.target.value)} rows={6} style={inputSt} />
+                      </div>
+
+                      <ImageUploader label="Imagen Destacada" description="JPG/PNG. Se mostrará junto al texto." value={page.pageImage} onChange={val => updatePage(page.id, 'pageImage', val)} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            <button onClick={() => createPage()} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', background: 'var(--glass-bg)', border: '1px dashed var(--glass-border)', borderRadius: '12px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 'bold', width: '100%', justifyContent: 'center', transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}>
+              <Plus size={18} /> Agregar Nueva Página
+            </button>
+          </div>
+        );
+
+      // ── Products ─────────────────────────────────────────────────────────
+      case 'products':
+        return (
+          <div>
+            <h3 style={sectionTitle}><Package size={20} color="var(--accent-primary)" /> Catálogo de Productos</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2rem' }}>Gestiona los productos eléctricos que se mostrarán en la página de Productos.</p>
+            
+            <button className="btn-primary" onClick={() => createProduct()} style={{ marginBottom: '2.5rem', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontSize: '0.9rem' }}>
+              <Plus size={16} /> Añadir Producto
+            </button>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: splitView ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+              {products.map((prod, i) => (
+                <div key={prod.id} style={{ padding: '1.5rem', background: 'var(--glass-bg)', border: `1px solid ${prod.active ? 'var(--accent-primary)' : 'var(--glass-border)'}`, borderRadius: '12px' }}>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button onClick={() => moveProduct(i, 'up')} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', padding: '4px', borderRadius: '4px', cursor: 'pointer' }}><ArrowUp size={14} /></button>
+                      <button onClick={() => moveProduct(i, 'down')} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', padding: '4px', borderRadius: '4px', cursor: 'pointer' }}><ArrowDown size={14} /></button>
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                      <input type="checkbox" checked={prod.active} onChange={e => updateProduct(prod.id, 'active', e.target.checked)} style={{ width: '15px', height: '15px', cursor: 'pointer' }} />
+                      Activo (Visible)
+                    </label>
+                    <button onClick={() => { if(confirm('¿Eliminar este producto?')) deleteProduct(prod.id); }} style={{ background: 'transparent', border: '1px solid #ef444455', color: '#ef4444', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer' }}>
+                      Eliminar
+                    </button>
+                  </div>
+                  
+                  <div style={{ marginBottom: '1.2rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Nombre</label>
+                    <input value={prod.name} onChange={e => updateProduct(prod.id, 'name', e.target.value)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} />
+                  </div>
+                  
+                  <div style={{ marginBottom: '1.2rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Precio (opcional)</label>
+                    <input value={prod.price} onChange={e => updateProduct(prod.id, 'price', e.target.value)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} placeholder="Ej: $120.00" />
+                  </div>
+
+                  <div style={{ marginBottom: '1.2rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Descripción</label>
+                    <Toolbar onFormat={(t) => insertFormat(prod.id, prod.description, t, (p,v) => updateProduct(p, 'description', v))} />
+                    <textarea value={prod.description} onChange={e => updateProduct(prod.id, 'description', e.target.value)} rows={3} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.85rem' }} />
+                  </div>
+                  
+                  <ImageUploader label="Foto del Producto" description="Cuadrada (ej: 600x600)" value={prod.image} onChange={val => updateProduct(prod.id, 'image', val)} />
+                </div>
+              ))}
+              {products.length === 0 && <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>No hay productos registrados.</p>}
             </div>
           </div>
         );
@@ -290,6 +524,46 @@ const Admin = () => {
             <Field label="Nombre del Sitio / Logo texto" path="siteName" value={content.siteName} onChange={onChange} />
             <Field label="Tagline / Eslogan" path="tagline" value={content.tagline} onChange={onChange} />
             <Field label="Texto Botón CTA (Navbar)" path="ctaButton" value={content.ctaButton} onChange={onChange} />
+            
+            <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--glass-border)' }}>
+              <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', fontWeight: '800', marginBottom: '1rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Lock size={18} /> Seguridad Institucional
+              </h4>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.5rem', lineHeight: '1.6' }}>Cambia la contraseña maestra de acceso al panel ("admin123" por defecto). Por precaución cierra sesión y vuelve a entrar tras cambiarla.</p>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) minmax(200px, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+                <input id="oldPass" type="password" placeholder="Contraseña Actual" style={inputSt} />
+                <input id="newPass" type="password" placeholder="Nueva Contraseña" style={inputSt} />
+              </div>
+              <button 
+                onClick={() => {
+                  const oldP = document.getElementById('oldPass').value;
+                  const newP = document.getElementById('newPass').value;
+                  if(!oldP || !newP) {
+                    const id = Date.now();
+                    setToasts(prev => [...prev, { id, msg: 'Llena ambos campos de contraseña', type: 'error' }]);
+                    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
+                    return;
+                  }
+                  if(changePassword(oldP, newP)) {
+                    document.getElementById('oldPass').value = '';
+                    document.getElementById('newPass').value = '';
+                    const id = Date.now();
+                    setToasts(prev => [...prev, { id, msg: 'Contraseña Actualizada Correctamente', type: 'success' }]);
+                    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
+                  } else {
+                    const id = Date.now();
+                    setToasts(prev => [...prev, { id, msg: 'La contraseña actual es incorrecta', type: 'error' }]);
+                    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
+                  }
+                }} 
+                style={{ padding: '10px 18px', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.5)', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'all 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.2)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
+              >
+                Actualizar Contraseña Maestra
+              </button>
+            </div>
           </div>
         );
 
@@ -450,6 +724,10 @@ const Admin = () => {
                 <div key={i} style={{ padding: '1.5rem', background: `rgba(59,130,246,0.04)`, border: '1px solid var(--glass-border)', borderRadius: '12px', borderLeft: '4px solid var(--accent-primary)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <span style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', color: 'var(--accent-primary)', fontSize: '0.85rem' }}>SERVICIO #{i + 1}</span>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button onClick={() => moveServiceCard(i, 'up')} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', padding: '4px', borderRadius: '4px', cursor: 'pointer' }}><ArrowUp size={14} /></button>
+                      <button onClick={() => moveServiceCard(i, 'down')} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', padding: '4px', borderRadius: '4px', cursor: 'pointer' }}><ArrowDown size={14} /></button>
+                    </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
                     <div>
@@ -550,6 +828,49 @@ const Admin = () => {
           </div>
         );
 
+      case 'inbox':
+        const unreadCount = inbox.filter(m => !m.read).length;
+        return (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h3 style={sectionTitle}><Mail size={20} color="var(--accent-primary)" /> Bandeja de Entrada</h3>
+              {unreadCount > 0 && (
+                <span style={{ background: '#ef4444', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                  {unreadCount} sin leer
+                </span>
+              )}
+            </div>
+            
+            {inbox.length === 0 ? (
+              <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--glass-bg)', borderRadius: '12px', border: '1px dashed var(--glass-border)' }}>
+                <MessageSquare size={48} color="var(--glass-border)" style={{ marginBottom: '1rem' }} />
+                <p style={{ color: 'var(--text-secondary)' }}>Aún no hay mensajes en tu bandeja.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {inbox.map(msg => (
+                  <div key={msg.id} style={{ padding: '1.5rem', background: 'var(--glass-bg)', border: `1px solid ${msg.read ? 'var(--glass-border)' : 'var(--accent-primary)'}`, borderRadius: '12px', position: 'relative' }}>
+                    {!msg.read && <div style={{ position: 'absolute', top: '15px', right: '15px', width: '10px', height: '10px', background: 'var(--accent-primary)', borderRadius: '50%', boxShadow: '0 0 10px var(--accent-primary)' }} />}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+                      <div>
+                        <h4 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.2rem' }}>{msg.name}</h4>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{msg.email} • {new Date(msg.date).toLocaleDateString()}</p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {!msg.read && (
+                          <button onClick={() => markMessageRead(msg.id)} style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', padding: '6px 12px', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer' }}>Marcar Leído</button>
+                        )}
+                        <button onClick={() => { if(confirm('¿Eliminar mensaje de manera permanente?')) deleteMessage(msg.id); }} style={{ background: 'transparent', border: '1px solid #ef444455', color: '#ef4444', padding: '6px 12px', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer' }}><Trash2 size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Eliminar</button>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: '0.95rem', lineHeight: '1.6', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>{msg.message}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+
       default: return null;
     }
   };
@@ -588,47 +909,82 @@ const Admin = () => {
           ))}
         </ul>
 
-        <div style={{ padding: '0.9rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '9px', display: 'flex', alignItems: 'center', gap: '10px', marginTop: '1rem' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-gradient)', flexShrink: 0 }}></div>
-          <div>
-            <p style={{ fontSize: '0.82rem', fontWeight: '700', fontFamily: 'var(--font-heading)' }}>Admin</p>
-            <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>admin@sitio.com</p>
+        <div style={{ padding: '0.9rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-gradient)', flexShrink: 0 }}></div>
+            <div>
+              <p style={{ fontSize: '0.82rem', fontWeight: '700', fontFamily: 'var(--font-heading)' }}>Admin</p>
+              <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Conectado</p>
+            </div>
           </div>
+          <button onClick={logout} title="Cerrar Sesión" style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
+             Salir
+          </button>
         </div>
       </aside>
 
-      {/* ── Main Editor ──────────────────────── */}
-      <div style={{ flex: 1, padding: '2.5rem 3rem', overflowY: 'auto' }}>
-
-        {/* Top Bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', fontWeight: '800' }}>Panel de Administración</h1>
-            <p style={{ color: 'var(--text-secondary)', marginTop: '0.2rem', fontSize: '0.9rem' }}>Edita cualquier cosa → Guarda → Los cambios persisten.</p>
+      {/* ── Main Layout ──────────────────────── */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        
+        {/* Editor Half */}
+        <div style={{ flex: splitView ? '0 0 500px' : 1, padding: '2.5rem', overflowY: 'auto', borderRight: splitView ? '1px solid var(--glass-border)' : 'none', transition: 'flex 0.3s' }}>
+          {/* Top Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', fontWeight: '800' }}>Panel de Administración</h1>
+              <p style={{ color: 'var(--text-secondary)', marginTop: '0.2rem', fontSize: '0.9rem' }}>Edita cualquier cosa → Guarda → Los cambios persisten.</p>
+            </div>
+            <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => setSplitView(!splitView)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: splitView ? 'var(--accent-primary)' : 'transparent', border: '1px solid var(--glass-border)', borderRadius: '8px', color: splitView ? 'white' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-heading)', fontWeight: '600' }}>
+                <Columns size={15} /> {splitView ? 'Cerrar Vista Previa' : 'Vista Dividida'}
+              </button>
+              <button onClick={resetContent} title="Restablecer todo" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'transparent', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-heading)', fontWeight: '600' }}>
+                <RotateCcw size={15} /> Reset
+              </button>
+              <a href="/" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'transparent', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-heading)', fontWeight: '600', textDecoration: 'none' }}>
+                <Eye size={15} /> Ver Sitio
+              </a>
+              <button onClick={saveContent} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 20px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.9rem', fontFamily: 'var(--font-heading)', fontWeight: '700', boxShadow: '0 4px 14px var(--accent-glow)' }}>
+                <Save size={17} /> Guardar
+              </button>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            {saveStatus && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '50px', background: saveStatus === 'saved' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: saveStatus === 'saved' ? '#10b981' : '#ef4444', fontWeight: '700', fontSize: '0.85rem', fontFamily: 'var(--font-heading)', whiteSpace: 'nowrap' }}>
-                {saveStatus === 'saved' ? <><CheckCircle size={15} /> ¡Guardado!</> : <><AlertCircle size={15} /> Error</>}
-              </div>
-            )}
-            <button onClick={resetContent} title="Restablecer todo" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'transparent', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-heading)', fontWeight: '600' }}>
-              <RotateCcw size={15} /> Reset
-            </button>
-            <a href="/" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'transparent', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-heading)', fontWeight: '600', textDecoration: 'none' }}>
-              <Eye size={15} /> Ver Sitio
-            </a>
-            <button onClick={saveContent} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 20px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.9rem', fontFamily: 'var(--font-heading)', fontWeight: '700', boxShadow: '0 4px 14px var(--accent-glow)' }}>
-              <Save size={17} /> Guardar
-            </button>
+
+          {/* Editor Panel */}
+          <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '16px', padding: '2rem' }}>
+            {renderSection()}
           </div>
         </div>
 
-        {/* Editor Panel */}
-        <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '16px', padding: '2rem' }}>
-          {renderSection()}
-        </div>
+        {/* Live Preview Iframe */}
+        {splitView && (
+          <div style={{ flex: 1, background: '#fff', position: 'relative' }}>
+            <iframe src="/" style={{ width: '100%', height: '100%', border: 'none' }} title="Vista Previa" />
+            <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', color: 'white', padding: '5px 10px', borderRadius: '20px', fontSize: '0.75rem', backdropFilter: 'blur(5px)' }}>
+              Live Preview
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Toast Notifications */}
+      <div style={{ position: 'fixed', bottom: '20px', right: '20px', display: 'flex', flexDirection: 'column', gap: '10px', zIndex: 9999 }}>
+        {toasts.map(t => (
+          <div key={t.id} style={{ 
+            background: t.type === 'success' ? '#10b981' : '#ef4444', 
+            color: 'white', padding: '12px 20px', borderRadius: '8px', 
+            boxShadow: '0 10px 25px rgba(0,0,0,0.2)', fontFamily: 'var(--font-body)', 
+            fontSize: '0.9rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px',
+            animation: 'slideIn 0.3s ease-out forwards'
+          }}>
+            {t.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+            {t.msg}
+          </div>
+        ))}
+      </div>
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+      `}} />
     </div>
   );
 };

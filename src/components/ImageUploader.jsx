@@ -112,7 +112,7 @@ const ImageUploader = ({ label, description, value, onChange, maxMB = 2 }) => {
             Arrastra una imagen aquí o <span style={{ color: 'var(--accent-primary)' }}>selecciona un archivo</span>
           </p>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
-            JPG, PNG, WebP o GIF — máximo {maxMB} MB
+            JPG, PNG, WebP o GIF — máximo {maxMB} MB.
           </p>
         </div>
       )}

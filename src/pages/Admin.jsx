@@ -536,7 +536,7 @@ const Admin = () => {
                 <input id="newPass" type="password" placeholder="Nueva Contraseña" style={inputSt} />
               </div>
               <button 
-                onClick={() => {
+                onClick={async () => {
                   const oldP = document.getElementById('oldPass').value;
                   const newP = document.getElementById('newPass').value;
                   if(!oldP || !newP) {
@@ -545,7 +545,8 @@ const Admin = () => {
                     setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
                     return;
                   }
-                  if(changePassword(oldP, newP)) {
+                  const success = await changePassword(oldP, newP);
+                  if(success) {
                     document.getElementById('oldPass').value = '';
                     document.getElementById('newPass').value = '';
                     const id = Date.now();
@@ -553,7 +554,7 @@ const Admin = () => {
                     setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
                   } else {
                     const id = Date.now();
-                    setToasts(prev => [...prev, { id, msg: 'La contraseña actual es incorrecta', type: 'error' }]);
+                    setToasts(prev => [...prev, { id, msg: 'Error al actualizar la contraseña / Actual errónea', type: 'error' }]);
                     setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
                   }
                 }} 

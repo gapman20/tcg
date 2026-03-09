@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Monitor, Smartphone, Layout, Megaphone, ArrowRight } from 'lucide-react';
+import SEO from '../components/SEO';
 
 const Services = () => {
   const servicesList = [
@@ -12,6 +13,10 @@ const Services = () => {
 
   return (
     <div className="page" style={{ position: 'relative', zIndex: 1 }}>
+      <SEO 
+        title="Servicios" 
+        description="Desarrollamos armas digitales. Tecnologías enfocadas en crecimiento exponencial." 
+      />
       
       {/* Subtle background glow */}
       <div style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translate(-50%, -50%)', width: '800px', height: '600px', background: 'var(--accent-secondary)', filter: 'blur(200px)', opacity: '0.08', borderRadius: '50%', zIndex: -1 }}></div>

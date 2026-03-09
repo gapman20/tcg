@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
+import { db, auth } from '../firebase';
 
 // ─── Default Text Content ─────────────────────────────────────────────────────
 const defaultContent = {
@@ -296,9 +299,43 @@ export const SiteProvider = ({ children }) => {
     return [];
   });
 
-  const [password, setPassword] = useState(() => localStorage.getItem(PASS_KEY) || 'admin123');
-  const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem(AUTH_KEY) === 'true');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
+  const [loadingDb, setLoadingDb] = useState(true);
+
+  // Firebase Auth Listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(!!user);
+    });
+    return unsubscribe;
+  }, []);
+
+  // Load from Firebase on mount
+  useEffect(() => {
+    const loadFromDb = async () => {
+      try {
+        const docRef = doc(db, 'site_data', 'main');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.content) setContent(deepMerge(defaultContent, data.content));
+          if (data.images) setImages({ ...defaultImages, ...data.images });
+          if (data.theme) setTheme({ ...defaultTheme, ...data.theme });
+          if (data.blogPosts) setBlogPosts(data.blogPosts);
+          if (data.pages) setPages(data.pages);
+          if (data.products) setProducts(data.products);
+          if (data.analytics) setAnalytics(data.analytics);
+          if (data.inbox) setInbox(data.inbox);
+        }
+      } catch (e) {
+        console.error("Error loading from Firebase:", e);
+      } finally {
+        setLoadingDb(false);
+      }
+    };
+    loadFromDb();
+  }, []);
 
   // Apply every theme change live (real-time preview)
   useEffect(() => { applyTheme(theme); }, [theme]);
@@ -431,25 +468,30 @@ export const SiteProvider = ({ children }) => {
   };
 
   // ── Auth helpers ────────────────────────────────────────────────────────
-  const login = (pass) => {
-    if (pass === password) {
-      setIsAuthenticated(true);
-      localStorage.setItem(AUTH_KEY, 'true');
+  const login = async (email, pass) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
       return true;
+    } catch {
+      return false;
     }
-    return false;
   };
-  const logout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem(AUTH_KEY);
+  const logout = async () => {
+    await signOut(auth);
   };
-  const changePassword = (oldPass, newPass) => {
-    if (oldPass === password) {
-      setPassword(newPass);
-      localStorage.setItem(PASS_KEY, newPass);
-      return true;
+  const changePassword = async (oldPass, newPass) => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const credential = EmailAuthProvider.credential(user.email, oldPass);
+        await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, newPass);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
     }
-    return false;
   };
 
   // ── Inbox helpers ───────────────────────────────────────────────────────
@@ -494,8 +536,24 @@ export const SiteProvider = ({ children }) => {
   const removeImage = (key, index = null) => updateImage(key, null, index);
 
   // ── Persist ───────────────────────────────────────────────────────────────
-  const saveContent = () => {
+  const saveContent = async () => {
     try {
+      setSaveStatus('saving');
+      
+      // Save to Firebase
+      const dataToSave = {
+        content,
+        images,
+        theme,
+        blogPosts,
+        pages,
+        products,
+        analytics,
+        inbox
+      };
+      await setDoc(doc(db, 'site_data', 'main'), dataToSave);
+
+      // Save to localStorage as backup/cache
       localStorage.setItem(CONTENT_KEY, JSON.stringify(content));
       localStorage.setItem(IMAGES_KEY,  JSON.stringify(images));
       localStorage.setItem(THEME_KEY,   JSON.stringify(theme));
@@ -503,8 +561,10 @@ export const SiteProvider = ({ children }) => {
       localStorage.setItem(PAGES_KEY,   JSON.stringify(pages));
       localStorage.setItem(PRODS_KEY,   JSON.stringify(products));
       localStorage.setItem(ANALYTICS_KEY,JSON.stringify(analytics));
+      
       setSaveStatus('saved');
-    } catch {
+    } catch (error) {
+      console.error("Error saving to Firebase:", error);
       setSaveStatus('error');
     } finally {
       setTimeout(() => setSaveStatus(null), 3000);
@@ -534,7 +594,7 @@ export const SiteProvider = ({ children }) => {
       analytics, trackAnalytics,
       inbox, addMessage, markMessageRead, deleteMessage,
       isAuthenticated, login, logout, changePassword,
-      saveContent, resetContent, saveStatus,
+      saveContent, resetContent, saveStatus, loadingDb,
     }}>
       {children}
     </SiteContext.Provider>

@@ -111,6 +111,24 @@ const defaultBlogPosts = [
   },
 ];
 
+// ─── Default Pages ─────────────────────────────────────────────────────────────
+const defaultPages = [
+  { id: 'home', name: 'Inicio', path: '/', active: true, isCustom: false },
+  { id: 'about', name: 'Nosotros', path: '/nosotros', active: true, isCustom: false },
+  { id: 'services', name: 'Servicios', path: '/servicios', active: true, isCustom: false },
+  { id: 'products', name: 'Productos', path: '/productos', active: true, isCustom: false },
+  { id: 'portfolio', name: 'Portafolio', path: '/portafolio', active: true, isCustom: false },
+  { id: 'blog', name: 'Blog', path: '/blog', active: true, isCustom: false },
+];
+
+// ─── Default Products ────────────────────────────────────────────────────────
+const defaultProducts = [
+  { id: 'prod-1', name: 'Foco LED 12W', description: 'Foco LED luz fría, alto rendimiento y bajo consumo. Ideal para interiores y exteriores techados.', price: '$45.00', image: null, active: true },
+  { id: 'prod-2', name: 'Cable Calibre 12 THW', description: 'Rollo de cable de cobre de 100m. Resistente al calor y humedad. Colores disponibles: rojo, negro, verde y blanco.', price: '$1,250.00', image: null, active: true },
+  { id: 'prod-3', name: 'Centro de Carga 2 Polos', description: 'Centro de carga QO para montaje de sobreponer, incluye zapatas principales.', price: '$220.00', image: null, active: true },
+  { id: 'prod-4', name: 'Contacto Duplex con Placa', description: 'Contacto polarizado en color blanco, diseño moderno y fácil instalación.', price: '$35.00', image: null, active: true },
+];
+
 // ─── Default Theme ────────────────────────────────────────────────────────────
 const defaultTheme = {
   accentPrimary:   '#3b82f6',
@@ -142,6 +160,12 @@ const CONTENT_KEY = 'site_content_v1';
 const IMAGES_KEY  = 'site_images_v1';
 const THEME_KEY   = 'site_theme_v1';
 const BLOG_KEY    = 'site_blog_v1';
+const PAGES_KEY   = 'site_pages_v1';
+const PRODS_KEY   = 'site_products_v1';
+const ANALYTICS_KEY = 'site_analytics_v1';
+const AUTH_KEY    = 'site_auth_v1';
+const PASS_KEY    = 'site_pass_v1';
+const INBOX_KEY   = 'site_inbox_v1';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function deepMerge(target, source) {
@@ -154,6 +178,16 @@ function deepMerge(target, source) {
     }
   }
   return result;
+}
+
+function moveArrayItem(arr, index, direction) {
+  const newArr = [...arr];
+  if (direction === 'up' && index > 0) {
+    [newArr[index - 1], newArr[index]] = [newArr[index], newArr[index - 1]];
+  } else if (direction === 'down' && index < newArr.length - 1) {
+    [newArr[index + 1], newArr[index]] = [newArr[index], newArr[index + 1]];
+  }
+  return newArr;
 }
 
 // Applies ALL theme variables to CSS custom properties — controls navbar, cards, etc.
@@ -227,6 +261,43 @@ export const SiteProvider = ({ children }) => {
     return defaultBlogPosts;
   });
 
+  const [pages, setPages] = useState(() => {
+    try {
+      const saved = localStorage.getItem(PAGES_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch { /* ignore */ }
+    return defaultPages;
+  });
+
+  const [products, setProducts] = useState(() => {
+    try {
+      const saved = localStorage.getItem(PRODS_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch { /* ignore */ }
+    return defaultProducts;
+  });
+
+  const [analytics, setAnalytics] = useState(() => {
+    try {
+      const saved = localStorage.getItem(ANALYTICS_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch { /* ignore */ }
+    return {
+      whatsapp_clicks: 0,
+      visits_simulated: [120, 150, 200, 180, 250, 310, 290] // Simulamos 7 días
+    };
+  });
+
+  const [inbox, setInbox] = useState(() => {
+    try {
+      const saved = localStorage.getItem(INBOX_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch { /* ignore */ }
+    return [];
+  });
+
+  const [password, setPassword] = useState(() => localStorage.getItem(PASS_KEY) || 'admin123');
+  const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem(AUTH_KEY) === 'true');
   const [saveStatus, setSaveStatus] = useState(null);
 
   // Apply every theme change live (real-time preview)
@@ -248,6 +319,14 @@ export const SiteProvider = ({ children }) => {
     setContent(prev => {
       const next = deepMerge({}, prev);
       next.services.cards[index][field] = value;
+      return next;
+    });
+  };
+
+  const moveServiceCard = (index, direction) => {
+    setContent(prev => {
+      const next = deepMerge({}, prev);
+      next.services.cards = moveArrayItem(next.services.cards, index, direction);
       return next;
     });
   };
@@ -286,6 +365,117 @@ export const SiteProvider = ({ children }) => {
     });
   };
 
+  // ── Pages helpers ─────────────────────────────────────────────────────────
+  const createPage = () => {
+    const newPage = {
+      id:          `page-${Date.now()}`,
+      name:        'Nueva Página',
+      path:        `/nueva-pagina-${Date.now().toString().slice(-4)}`,
+      active:      false,
+      isCustom:    true,
+      pageTitle:   'Título de tu nueva página',
+      pageSubtitle:'Describe brevemente de qué trata esta página.',
+      pageText:    'Escribe aquí todo lo que quieras contar. Puedes presionar "Enter" para crear nuevos párrafos.',
+      pageImage:   null
+    };
+    setPages(prev => [...prev, newPage]);
+    return newPage.id;
+  };
+
+  const updatePage = (id, field, value) => {
+    setPages(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
+  const deletePage = (id) => {
+    setPages(prev => prev.filter(p => p.id !== id));
+  };
+
+  const movePage = (index, direction) => {
+    setPages(prev => moveArrayItem(prev, index, direction));
+  };
+
+  // ── Products helpers ──────────────────────────────────────────────────────
+  const createProduct = () => {
+    const newProduct = {
+      id:          `prod-${Date.now()}`,
+      name:        'Nuevo Producto',
+      description: 'Descripción breve del producto.',
+      price:       '$0.00',
+      image:       null,
+      active:      true
+    };
+    setProducts(prev => [newProduct, ...prev]);
+    return newProduct.id;
+  };
+
+  const updateProduct = (id, field, value) => {
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
+  const deleteProduct = (id) => {
+    setProducts(prev => prev.filter(p => p.id !== id));
+  };
+
+  const moveProduct = (index, direction) => {
+    setProducts(prev => moveArrayItem(prev, index, direction));
+  };
+
+  // ── Analytics helpers ───────────────────────────────────────────────────
+  const trackAnalytics = (event) => {
+    setAnalytics(prev => {
+      const next = { ...prev };
+      if (event === 'whatsapp') next.whatsapp_clicks = (next.whatsapp_clicks || 0) + 1;
+      localStorage.setItem(ANALYTICS_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  // ── Auth helpers ────────────────────────────────────────────────────────
+  const login = (pass) => {
+    if (pass === password) {
+      setIsAuthenticated(true);
+      localStorage.setItem(AUTH_KEY, 'true');
+      return true;
+    }
+    return false;
+  };
+  const logout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem(AUTH_KEY);
+  };
+  const changePassword = (oldPass, newPass) => {
+    if (oldPass === password) {
+      setPassword(newPass);
+      localStorage.setItem(PASS_KEY, newPass);
+      return true;
+    }
+    return false;
+  };
+
+  // ── Inbox helpers ───────────────────────────────────────────────────────
+  const addMessage = (msg) => {
+    const newMsg = { ...msg, id: Date.now(), date: new Date().toISOString(), read: false };
+    setInbox(prev => {
+      const updated = [newMsg, ...prev];
+      localStorage.setItem(INBOX_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+  const markMessageRead = (id) => {
+    setInbox(prev => {
+      const updated = prev.map(m => m.id === id ? { ...m, read: true } : m);
+      localStorage.setItem(INBOX_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+  const deleteMessage = (id) => {
+    setInbox(prev => {
+      const updated = prev.filter(m => m.id !== id);
+      localStorage.setItem(INBOX_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   // ── Theme helpers ─────────────────────────────────────────────────────────
   const updateTheme = (key, value) => setTheme(prev => ({ ...prev, [key]: value }));
   const resetTheme  = () => setTheme(defaultTheme);
@@ -310,6 +500,9 @@ export const SiteProvider = ({ children }) => {
       localStorage.setItem(IMAGES_KEY,  JSON.stringify(images));
       localStorage.setItem(THEME_KEY,   JSON.stringify(theme));
       localStorage.setItem(BLOG_KEY,    JSON.stringify(blogPosts));
+      localStorage.setItem(PAGES_KEY,   JSON.stringify(pages));
+      localStorage.setItem(PRODS_KEY,   JSON.stringify(products));
+      localStorage.setItem(ANALYTICS_KEY,JSON.stringify(analytics));
       setSaveStatus('saved');
     } catch {
       setSaveStatus('error');
@@ -319,21 +512,28 @@ export const SiteProvider = ({ children }) => {
   };
 
   const resetContent = () => {
-    [CONTENT_KEY, IMAGES_KEY, THEME_KEY, BLOG_KEY].forEach(k => localStorage.removeItem(k));
+    [CONTENT_KEY, IMAGES_KEY, THEME_KEY, BLOG_KEY, PAGES_KEY, PRODS_KEY, ANALYTICS_KEY].forEach(k => localStorage.removeItem(k));
     setContent(defaultContent);
     setImages(defaultImages);
     setTheme(defaultTheme);
     setBlogPosts(defaultBlogPosts);
+    setPages(defaultPages);
+    setProducts(defaultProducts);
     setSaveStatus('saved');
     setTimeout(() => setSaveStatus(null), 3000);
   };
 
   return (
     <SiteContext.Provider value={{
-      content, updateContent, updateServiceCard,
+      content, updateContent, updateServiceCard, moveServiceCard,
       images,  updateImage, removeImage,
       theme,   updateTheme, resetTheme,
       blogPosts, createBlogPost, updateBlogPost, deleteBlogPost, duplicateBlogPost,
+      pages, createPage, updatePage, deletePage, movePage,
+      products, createProduct, updateProduct, deleteProduct, moveProduct,
+      analytics, trackAnalytics,
+      inbox, addMessage, markMessageRead, deleteMessage,
+      isAuthenticated, login, logout, changePassword,
       saveContent, resetContent, saveStatus,
     }}>
       {children}

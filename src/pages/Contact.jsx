@@ -1,11 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import LocationMap from '../components/LocationMap';
 import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
 import { useSite } from '../context/SiteContext';
 
 const Contact = () => {
-  const { content } = useSite();
+  const { content, addMessage } = useSite();
   const c = content.contact;
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [sent, setSent] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if(formData.name && formData.email) {
+      addMessage(formData);
+      setSent(true);
+      setFormData({ name: '', email: '', message: '' });
+      setTimeout(() => setSent(false), 4000);
+    }
+  };
 
   return (
     <div className="page" style={{ position: 'relative', zIndex: 1 }}>
@@ -53,27 +65,27 @@ const Contact = () => {
 
         {/* Form */}
         <div className="glass-card animate-fade-up delay-200" style={{ position: 'sticky', top: '120px' }}>
-          <form style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <h3 className="h2-premium" style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Solicitar Presupuesto</h3>
             <p style={{ marginBottom: '1.5rem' }}>Déjanos conocer un poco sobre tus objetivos.</p>
 
-            {[
-              { label: 'Nombre o Empresa', type: 'text', placeholder: 'Ej. Juan Pérez' },
-              { label: 'Correo Electrónico', type: 'email', placeholder: 'correo@empresa.com' },
-            ].map((f, i) => (
-              <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontSize: '0.9rem', fontWeight: '500', color: 'var(--text-card-secondary)' }}>{f.label}</label>
-                <input type={f.type} placeholder={f.placeholder} style={{ width: '100%', padding: '16px', background: 'rgba(5,5,5,0.5)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '12px', fontFamily: 'var(--font-body)', outline: 'none', transition: 'border-color 0.3s' }} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--glass-border)'} />
-              </div>
-            ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.9rem', fontWeight: '500', color: 'var(--text-card-secondary)' }}>Nombre o Empresa</label>
+              <input required type="text" placeholder="Ej. Juan Pérez" value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} style={{ width: '100%', padding: '16px', background: 'rgba(5,5,5,0.5)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '12px', fontFamily: 'var(--font-body)', outline: 'none', transition: 'border-color 0.3s' }} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--glass-border)'} />
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.9rem', fontWeight: '500', color: 'var(--text-card-secondary)' }}>Correo Electrónico</label>
+              <input required type="email" placeholder="correo@empresa.com" value={formData.email} onChange={e=>setFormData({...formData, email: e.target.value})} style={{ width: '100%', padding: '16px', background: 'rgba(5,5,5,0.5)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '12px', fontFamily: 'var(--font-body)', outline: 'none', transition: 'border-color 0.3s' }} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--glass-border)'} />
+            </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label style={{ fontSize: '0.9rem', fontWeight: '500', color: 'var(--text-card-secondary)' }}>¿Qué necesitas?</label>
-              <textarea placeholder="Cuéntanos sobre tu negocio..." rows="5" style={{ width: '100%', padding: '16px', background: 'rgba(5,5,5,0.5)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '12px', resize: 'vertical', fontFamily: 'var(--font-body)', outline: 'none', transition: 'border-color 0.3s' }} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--glass-border)'}></textarea>
+              <textarea required placeholder="Cuéntanos..." rows="5" value={formData.message} onChange={e=>setFormData({...formData, message: e.target.value})} style={{ width: '100%', padding: '16px', background: 'rgba(5,5,5,0.5)', border: '1px solid var(--glass-border)', color: 'white', borderRadius: '12px', resize: 'vertical', fontFamily: 'var(--font-body)', outline: 'none', transition: 'border-color 0.3s' }} onFocus={e => e.target.style.borderColor = 'var(--accent-primary)'} onBlur={e => e.target.style.borderColor = 'var(--glass-border)'}></textarea>
             </div>
 
-            <button type="button" className="btn-primary" style={{ marginTop: '1rem', width: '100%', justifyContent: 'center' }}>
-              Enviar Solicitud Inmediata <Send size={18} />
+            <button type="submit" className="btn-primary" style={{ marginTop: '1rem', width: '100%', justifyContent: 'center', background: sent ? '#10b981' : '' }}>
+              {sent ? '¡Mensaje Enviado!' : 'Enviar Solicitud Inmediata'} <Send size={18} />
             </button>
           </form>
         </div>

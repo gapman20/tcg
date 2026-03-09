@@ -6,20 +6,20 @@ import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
 import ScrollToTop from './components/ScrollToTop';
 
-// Pages
-import Home from './pages/Home';
-import About from './pages/About';
-import Services from './pages/Services';
-import Products from './pages/Products';
-import ServiceDetail1 from './pages/ServiceDetail1';
-import ServiceDetail2 from './pages/ServiceDetail2';
-import Portfolio from './pages/Portfolio';
-import Blog from './pages/Blog';
-import BlogPost from './pages/BlogPost';
-import Contact from './pages/Contact';
-import Admin from './pages/Admin';
-import CustomPage from './pages/CustomPage';
-import Login from './pages/Login';
+// Lazy Loaded Pages
+const Home = React.lazy(() => import('./pages/Home'));
+const About = React.lazy(() => import('./pages/About'));
+const Services = React.lazy(() => import('./pages/Services'));
+const Products = React.lazy(() => import('./pages/Products'));
+const ServiceDetail1 = React.lazy(() => import('./pages/ServiceDetail1'));
+const ServiceDetail2 = React.lazy(() => import('./pages/ServiceDetail2'));
+const Portfolio = React.lazy(() => import('./pages/Portfolio'));
+const Blog = React.lazy(() => import('./pages/Blog'));
+const BlogPost = React.lazy(() => import('./pages/BlogPost'));
+const Contact = React.lazy(() => import('./pages/Contact'));
+const Admin = React.lazy(() => import('./pages/Admin'));
+const CustomPage = React.lazy(() => import('./pages/CustomPage'));
+const Login = React.lazy(() => import('./pages/Login'));
 
 const AppContent = () => {
   const { pages, isAuthenticated } = useSite();
@@ -37,21 +37,27 @@ const AppContent = () => {
       <ScrollToTop />
       <Navbar />
       <main>
-        <Routes>
-          {pages.filter(p => p.active).map(page => (
-            <Route 
-              key={page.id} 
-              path={page.path} 
-              element={page.isCustom ? <CustomPage page={page} /> : componentMap[page.id]} 
-            />
-          ))}
-          {/* Static Sub-routes */}
-          <Route path="/servicios/1" element={<ServiceDetail1 />} />
-          <Route path="/servicios/2" element={<ServiceDetail2 />} />
-          <Route path="/blog/:id" element={<BlogPost />} />
-          <Route path="/contacto" element={<Contact />} />
-          <Route path="/admin" element={isAuthenticated ? <Admin /> : <Login />} />
-        </Routes>
+        <React.Suspense fallback={
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', color: 'var(--text-secondary)' }}>
+            <div className="spinner">Cargando...</div>
+          </div>
+        }>
+          <Routes>
+            {pages.filter(p => p.active).map(page => (
+              <Route 
+                key={page.id} 
+                path={page.path} 
+                element={page.isCustom ? <CustomPage page={page} /> : componentMap[page.id]} 
+              />
+            ))}
+            {/* Static Sub-routes */}
+            <Route path="/servicios/1" element={<ServiceDetail1 />} />
+            <Route path="/servicios/2" element={<ServiceDetail2 />} />
+            <Route path="/blog/:id" element={<BlogPost />} />
+            <Route path="/contacto" element={<Contact />} />
+            <Route path="/admin" element={isAuthenticated ? <Admin /> : <Login />} />
+          </Routes>
+        </React.Suspense>
       </main>
       <Footer />
       <WhatsAppButton />

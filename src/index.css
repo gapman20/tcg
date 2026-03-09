@@ -421,6 +421,21 @@ main {
 .delay-200 { animation-delay: 200ms; }
 .delay-300 { animation-delay: 300ms; }
 
+/* Spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--accent-primary);
+  animation: spin 1s ease-in-out infinite;
+  text-indent: -9999px; /* Hide the text "Cargando..." */
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 10px;

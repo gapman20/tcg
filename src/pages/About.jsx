@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSite } from '../context/SiteContext';
+import SEO from '../components/SEO';
 
 const About = () => {
   const { content } = useSite();
@@ -7,6 +8,10 @@ const About = () => {
 
   return (
     <div className="page" style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', minHeight: '80vh' }}>
+      <SEO 
+        title={a.title || "Nosotros"} 
+        description={a.subtitle || "Conoce más sobre nuestra misión, visión y equipo de especialistas."} 
+      />
       <header style={{ textAlign: 'center', marginBottom: '4rem' }}>
         <h1 className="h1-premium mb-4">{a.title}</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto' }}>

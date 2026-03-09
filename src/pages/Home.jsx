@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Zap, Shield, Globe } from 'lucide-react';
 import { useSite } from '../context/SiteContext';
+import SEO from '../components/SEO';
 
 const Home = () => {
   const { content, images } = useSite();
@@ -9,6 +10,10 @@ const Home = () => {
 
   return (
     <div className="home-page" style={{ position: 'relative', overflow: 'hidden' }}>
+      <SEO 
+        title="Inicio" 
+        description={h.subtitle || "Bienvenido a Electrica, servicios de clase mundial."} 
+      />
       
       {/* Decorative Orbs */}
       <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '500px', height: '500px', background: 'var(--accent-primary)', filter: 'blur(150px)', opacity: '0.15', borderRadius: '50%', zIndex: 0 }}></div>

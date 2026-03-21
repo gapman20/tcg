@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSite } from '../context/SiteContext';
+import { useToast } from '../components/Toast';
 import ImageUploader from '../components/ImageUploader';
 import {
   LayoutDashboard, FileText, Settings, Mail, Info,
@@ -7,7 +8,8 @@ import {
   Image as ImageIcon, Palette, BarChart2, Globe,
   MessageSquare, Zap, Users, TrendingUp, Monitor,
   ToggleLeft, ToggleRight, RefreshCw, Plus, Trash2, Package,
-  Columns, ArrowUp, ArrowDown, Bold, List, BarChart, Lock
+  Columns, ArrowUp, ArrowDown, Bold, List, BarChart, Lock,
+  Gamepad2, Layers, Tag
 } from 'lucide-react';
 
 // ─── Shared input style ───────────────────────────────────────────────────────
@@ -148,13 +150,14 @@ const sections = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={17} /> },
   { id: 'inbox', label: 'Bandeja de Entrada', icon: <Mail size={17} /> },
   { id: 'pages', label: 'Páginas & Menú', icon: <FileText size={17} /> },
-  { id: 'products', label: 'Productos', icon: <Package size={17} /> },
+  { id: 'sellados', label: 'Sellados', icon: <Package size={17} /> },
+  { id: 'cards', label: 'Cartas Sueltas', icon: <Layers size={17} /> },
   { id: 'theme', label: 'Colores & Tema', icon: <Palette size={17} /> },
   { id: 'general', label: 'General', icon: <Settings size={17} /> },
   { id: 'seo', label: 'SEO', icon: <Globe size={17} /> },
   { id: 'home', label: 'Inicio', icon: <Monitor size={17} /> },
   { id: 'about', label: 'Nosotros', icon: <Info size={17} /> },
-  { id: 'services', label: 'Servicios', icon: <Zap size={17} /> },
+  { id: 'services', label: 'Colecciones', icon: <Zap size={17} /> },
   { id: 'blog', label: 'Blog', icon: <FileText size={17} /> },
   { id: 'contact', label: 'Contacto', icon: <Mail size={17} /> },
   { id: 'social', label: 'Redes Sociales', icon: <Globe size={17} /> },
@@ -176,23 +179,219 @@ const Admin = () => {
     inbox = [], markMessageRead, deleteMessage, logout,
     saveContent, resetContent, saveStatus,
   } = useSite();
+  const toast = useToast();
 
   const [active, setActive] = useState('dashboard');
   const [editPost, setEditPost] = useState(null);
   const [splitView, setSplitView] = useState(false);
-  const [toasts, setToasts] = useState([]);
+  
+  // Cards state for TCG card management
+  const [cards, setCards] = useState([]);
+  const [cardsLoading, setCardsLoading] = useState(false);
+  const [editingCard, setEditingCard] = useState(null);
+  
+  // Sellados state for sealed products
+  const [sellados, setSellados] = useState([]);
+  const [selladosLoading, setSelladosLoading] = useState(false);
+  const [editingSellado, setEditingSellado] = useState(null);
 
   const onChange = (path, val) => updateContent(path, val);
 
+  // Sample cards data
+  const sampleCards = [
+    { id: 'c1', name: 'Charizard ex - Ultra Rare', price: 3500, game: 'Pokemon', set: 'Phantasmal Flames', rarity: 'Ultra Rare', condition: 'NM', stock: 2, imageUrl: null, description: '', active: true },
+    { id: 'c2', name: 'Mewtwo ex - Rare Holo', price: 890, game: 'Pokemon', set: 'Obsidian Flames', rarity: 'Rare', condition: 'NM', stock: 5, imageUrl: null, description: '', active: true },
+    { id: 'c3', name: 'Pikachu - Common', price: 25, game: 'Pokemon', set: 'Paldean Fates', rarity: 'Common', condition: 'NM', stock: 20, imageUrl: null, description: '', active: true },
+    { id: 'c4', name: 'Blue Eyes White Dragon - Ultra Rare', price: 4500, game: 'Yu-Gi-Oh', set: 'Structure Deck', rarity: 'Ultra Rare', condition: 'NM', stock: 1, imageUrl: null, description: '', active: true },
+    { id: 'c5', name: 'Dark Magician - Rare', price: 1200, game: 'Yu-Gi-Oh', set: 'Structure Deck', rarity: 'Rare', condition: 'NM', stock: 3, imageUrl: null, description: '', active: true },
+    { id: 'c6', name: 'Black Lotus - Rare', price: 15000, game: 'Magic', set: 'Alpha Edition', rarity: 'Rare', condition: 'LP', stock: 1, imageUrl: null, description: '', active: true },
+  ];
+
+  // Load cards from localStorage when cards section is active
+  useEffect(() => {
+    if (active === 'cards' && cards.length === 0) {
+      setCardsLoading(true);
+      try {
+        const savedCards = localStorage.getItem('tcg_cards');
+        if (savedCards) {
+          const cardsData = JSON.parse(savedCards);
+          if (Array.isArray(cardsData) && cardsData.length > 0) {
+            setCards(cardsData);
+          } else {
+            setCards(sampleCards);
+            saveCardsToStorage(sampleCards);
+          }
+        } else {
+          setCards(sampleCards);
+          saveCardsToStorage(sampleCards);
+        }
+      } catch (err) {
+        console.error('Error loading cards:', err);
+        setCards([]);
+      } finally {
+        setCardsLoading(false);
+      }
+    }
+  }, [active]);
+
+  // Card CRUD operations (localStorage)
+  const saveCardsToStorage = (updatedCards) => {
+    localStorage.setItem('tcg_cards', JSON.stringify(updatedCards));
+  };
+
+  const createCard = () => {
+    const newCard = {
+      id: `card-${Date.now()}`,
+      name: 'Nueva Carta',
+      game: 'Pokemon',
+      set: '',
+      rarity: 'Common',
+      price: 0,
+      stock: 1,
+      imageUrl: '',
+      description: '',
+      active: true,
+      createdAt: new Date().toISOString()
+    };
+    setCards(prev => {
+      const updated = [newCard, ...prev];
+      saveCardsToStorage(updated);
+      return updated;
+    });
+    setEditingCard(newCard.id);
+  };
+
+  const updateCard = (cardId, field, value) => {
+    setCards(prev => {
+      const updated = prev.map(c => c.id === cardId ? { ...c, [field]: value } : c);
+      saveCardsToStorage(updated);
+      return updated;
+    });
+  };
+
+  const deleteCard = (cardId) => {
+    if (!confirm('¿Eliminar esta carta?')) return;
+    setCards(prev => {
+      const updated = prev.filter(c => c.id !== cardId);
+      saveCardsToStorage(updated);
+      return updated;
+    });
+    if (editingCard === cardId) setEditingCard(null);
+  };
+
+  const uploadCardImage = async (cardId, file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target.result;
+        updateCard(cardId, 'imageUrl', base64);
+        resolve(base64);
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Sellados (sealed products) CRUD
+  const sampleSellados = [
+    { id: 's1', name: 'Charizard ex Ultra Premium Collection', price: 2990, game: 'pokemon', set: 'Phantasmal Flames', type: 'premium', badge: 'Nuevo', discountPercent: 0, stock: 5, imageUrl: null, active: true },
+    { id: 's2', name: 'Mega Evolution Elite Trainer Box', price: 1270, game: 'pokemon', set: 'Mega Evolution', type: 'elite-trainer', badge: 'Oferta', discountPercent: 20, stock: 3, imageUrl: null, active: true },
+    { id: 's3', name: 'Prismatic Evolutions Booster Box', price: 5800, game: 'pokemon', set: 'Scarlet & Violet', type: 'booster-box', badge: 'Preventa', discountPercent: 0, stock: 10, imageUrl: null, active: true },
+    { id: 's4', name: 'Marvel Super Heroes Commander Deck', price: 890, game: 'magic', set: 'Marvel', type: 'deck', badge: 'Nuevo', discountPercent: 0, stock: 8, imageUrl: null, active: true },
+    { id: 's5', name: 'Destined Rivals Booster Bundle', price: 760, game: 'pokemon', set: 'Scarlet & Violet', type: 'bundle', badge: 'Oferta', discountPercent: 20, stock: 12, imageUrl: null, active: true },
+    { id: 's6', name: 'Digimon BT-15 Booster Box', price: 2200, game: 'digimon', set: 'BT-15', type: 'booster-box', badge: 'Nuevo', discountPercent: 0, stock: 4, imageUrl: null, active: true },
+  ];
+
+  useEffect(() => {
+    if (active === 'sellados' && sellados.length === 0) {
+      setSelladosLoading(true);
+      try {
+        const saved = localStorage.getItem('tcg_sellados');
+        if (saved) {
+          const data = JSON.parse(saved);
+          if (Array.isArray(data) && data.length > 0) {
+            setSellados(data);
+          } else {
+            setSellados(sampleSellados);
+            saveSelladosToStorage(sampleSellados);
+          }
+        } else {
+          setSellados(sampleSellados);
+          saveSelladosToStorage(sampleSellados);
+        }
+      } catch (err) {
+        console.error('Error loading sellados:', err);
+        setSellados([]);
+      } finally {
+        setSelladosLoading(false);
+      }
+    }
+  }, [active]);
+
+  const saveSelladosToStorage = (updated) => {
+    localStorage.setItem('tcg_sellados', JSON.stringify(updated));
+  };
+
+  const createSellado = () => {
+    const newItem = {
+      id: `sell-${Date.now()}`,
+      name: 'Nuevo Producto Sellado',
+      game: 'pokemon',
+      set: '',
+      type: 'booster-box',
+      price: 0,
+      discountPercent: 0,
+      stock: 1,
+      imageUrl: '',
+      badge: '',
+      active: true,
+      createdAt: new Date().toISOString()
+    };
+    setSellados(prev => {
+      const updated = [newItem, ...prev];
+      saveSelladosToStorage(updated);
+      return updated;
+    });
+    setEditingSellado(newItem.id);
+  };
+
+  const updateSellado = (id, field, value) => {
+    setSellados(prev => {
+      const updated = prev.map(item => item.id === id ? { ...item, [field]: value } : item);
+      saveSelladosToStorage(updated);
+      return updated;
+    });
+  };
+
+  const deleteSellado = (id) => {
+    if (confirm('¿Eliminar este producto?')) {
+      setSellados(prev => {
+        const updated = prev.filter(item => item.id !== id);
+        saveSelladosToStorage(updated);
+        return updated;
+      });
+      setEditingSellado(null);
+    }
+  };
+
+  const uploadSelladoImage = async (id, file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target.result;
+        updateSellado(id, 'imageUrl', base64);
+        resolve(base64);
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  };
+
   useEffect(() => {
     if (saveStatus === 'saved') {
-      const id = Date.now();
-      setToasts(prev => [...prev, { id, msg: '¡Cambios Guardados Exitosamente!', type: 'success' }]);
-      setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
+      toast.success('¡Cambios Guardados Exitosamente!');
     } else if (saveStatus === 'error') {
-      const id = Date.now();
-      setToasts(prev => [...prev, { id, msg: 'Error al guardar', type: 'error' }]);
-      setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
+      toast.error('Error al guardar');
     }
   }, [saveStatus]);
 
@@ -200,40 +399,147 @@ const Admin = () => {
     switch (active) {
 
       // ── Dashboard ─────────────────────────────────────────────────────────
-      case 'dashboard':
+      case 'dashboard': {
         const activePages = pages.filter(p => p.active).length;
-        const activeProds = products.filter(p => p.active).length;
         const totalImages = [images.logo, images.heroBg, images.aboutHero, ...(images.portfolio || [])].filter(Boolean).length;
         
+        const sellados = JSON.parse(localStorage.getItem('tcg_sellados') || '[]');
+        const cards = JSON.parse(localStorage.getItem('tcg_cards') || '[]');
+        const orders = JSON.parse(localStorage.getItem('tcg_orders') || '[]');
+        
+        const totalProducts = sellados.length + cards.length;
+        const activeProducts = [...sellados, ...cards].filter(p => p.active !== false).length;
+        const discountedProducts = [...sellados, ...cards].filter(p => p.discountPercent > 0 || p.originalPrice).length;
+        const outOfStockProducts = [...sellados, ...cards].filter(p => p.stock === 0).length;
+        
+        const inventoryValue = [...sellados, ...cards].reduce((sum, p) => sum + (p.price * (p.stock || 0)), 0);
+        
+        const now = new Date();
+        const todayOrders = orders.filter(o => {
+          const orderDate = new Date(o.createdAt);
+          return orderDate.toDateString() === now.toDateString();
+        });
+        const weekOrders = orders.filter(o => {
+          const orderDate = new Date(o.createdAt);
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return orderDate >= weekAgo;
+        });
+        const monthOrders = orders.filter(o => {
+          const orderDate = new Date(o.createdAt);
+          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          return orderDate >= monthAgo;
+        });
+        
+        const topProduct = orders.length > 0 
+          ? orders.reduce((acc, order) => {
+              order.items?.forEach(item => {
+                acc[item.name] = (acc[item.name] || 0) + item.quantity;
+              });
+              return acc;
+            }, {})
+          : {};
+        const topProductName = Object.keys(topProduct).length > 0 
+          ? Object.entries(topProduct).sort((a, b) => b[1] - a[1])[0][0]
+          : 'Sin datos';
+
         return (
           <div>
-            <h3 style={sectionTitle}><LayoutDashboard size={20} color="var(--accent-primary)" /> Panel de Rendimiento y Resumen</h3>
+            <h3 style={sectionTitle}><LayoutDashboard size={20} color="var(--accent-primary)" /> Panel de Estadísticas</h3>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
-              <StatCard label="Clics WhatsApp" val={analytics.whatsapp_clicks || 0} sub="+3% vs sem. ant." color="#25d366" Icon={MessageSquare} />
-              <StatCard label="Páginas Activas" val={activePages} sub={`de ${pages.length} totales`} color="var(--accent-primary)" Icon={FileText} />
-              <StatCard label="Productos en Catálogo" val={activeProds} sub={`${products.length - activeProds} ocultos`} color="#f59e0b" Icon={Package} />
-              <StatCard label="Imágenes Subidas" val={`${totalImages}/9`} sub="Formatos óptimos" color="#10b981" Icon={ImageIcon} />
+            {/* Period Filter */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+              {['Hoy', 'Esta Semana', 'Este Mes'].map((period, i) => (
+                <button key={period} style={{
+                  padding: '8px 16px',
+                  background: i === 1 ? 'var(--accent-gradient)' : 'var(--glass-bg)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '8px',
+                  color: i === 1 ? 'white' : 'var(--text-secondary)',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem'
+                }}>
+                  {period}
+                </button>
+              ))}
             </div>
 
-            {/* Simulated Chart */}
-            <SimpleBarChart data={analytics.visits_simulated} />
+            {/* Stats Grid - TCG Metrics */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+              <StatCard label="Total Productos" val={totalProducts} sub={`${activeProducts} activos`} color="#8b5cf6" Icon={Package} />
+              <StatCard label="Sellados" val={sellados.length} sub="En inventario" color="#3b82f6" Icon={Package} />
+              <StatCard label="Cartas Sueltas" val={cards.length} sub="En inventario" color="#06b6d4" Icon={Layers} />
+              <StatCard label="Con Descuento" val={discountedProducts} sub="Productos en oferta" color="#10b981" Icon={Tag} />
+              <StatCard label="Sin Stock" val={outOfStockProducts} sub="Agotados" color="#ef4444" Icon={AlertCircle} />
+              <StatCard label="Valor Inventario" val={`$${inventoryValue.toLocaleString('es-MX')}`} sub="Pesos MXN" color="#f59e0b" Icon={TrendingUp} />
+            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-              {/* Quick Links */}
+            {/* Orders Stats */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+              <StatCard label="Pedidos Hoy" val={todayOrders.length} sub="Últimas 24h" color="#25d366" Icon={BarChart2} />
+              <StatCard label="Pedidos Semana" val={weekOrders.length} sub="Últimos 7 días" color="#3b82f6" Icon={BarChart2} />
+              <StatCard label="Pedidos Mes" val={monthOrders.length} sub="Últimos 30 días" color="#8b5cf6" Icon={BarChart2} />
+              <StatCard label="Total Pedidos" val={orders.length} sub="Registrados" color="#f59e0b" Icon={BarChart2} />
+            </div>
+
+            {/* Top Product & More Info */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+              {/* Top Selling Product */}
               <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '1.5rem' }}>
-                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '800', marginBottom: '1.2rem', fontSize: '1rem' }}>⚡ Accesos Rápidos</h4>
+                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '800', marginBottom: '1.2rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <TrendingUp size={18} color="#10b981" /> Producto Más Vendido
+                </h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ width: '60px', height: '60px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>🏆</div>
+                  <div>
+                    <p style={{ fontWeight: '600', marginBottom: '0.25rem' }}>{topProductName}</p>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      {topProduct[topProductName] ? `${topProduct[topProductName]} unidades` : 'Sin datos aún'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Inventory by Game */}
+              <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '1.5rem' }}>
+                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '800', marginBottom: '1.2rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <BarChart2 size={18} color="#3b82f6" /> Inventario por Juego
+                </h4>
+                {['pokemon', 'yugioh', 'magic', 'digimon', 'dragonball', 'onepiece'].map(game => {
+                  const gameProducts = [...sellados, ...cards].filter(p => p.game === game);
+                  const percentage = totalProducts > 0 ? Math.round((gameProducts.length / totalProducts) * 100) : 0;
+                  return (
+                    <div key={game} style={{ marginBottom: '0.75rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                        <span style={{ fontSize: '0.85rem', textTransform: 'capitalize' }}>{game}</span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{gameProducts.length}</span>
+                      </div>
+                      <div style={{ height: '6px', background: 'var(--glass-border)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${percentage}%`, background: 'var(--accent-gradient)', borderRadius: '3px', transition: 'width 0.5s ease' }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Quick Actions */}
+              <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '1.5rem' }}>
+                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '800', marginBottom: '1.2rem', fontSize: '1rem' }}>⚡ Acciones Rápidas</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                   {[
-                    { label: '📄 Menú & Páginas', section: 'pages' },
-                    { label: '📦 Productos', section: 'products' },
+                    { label: '📦 Agregar Sellado', section: 'sellados', action: 'create' },
+                    { label: '🃏 Agregar Carta', section: 'cards', action: 'create' },
+                    { label: '📄 Gestionar Páginas', section: 'pages' },
                     { label: '🎨 Cambiar Colores', section: 'theme' },
-                    { label: '🏠 Editar Inicio', section: 'home' },
-                    { label: '📱 Configurar WhatsApp', section: 'whatsapp' },
-                    { label: '🖼️ Subir Imágenes', section: 'images' },
-                    { label: '🔗 Redes Sociales', section: 'social' },
                   ].map(q => (
-                    <button key={q.section} onClick={() => setActive(q.section)}
+                    <button key={q.label} onClick={() => {
+                      if (q.action === 'create') {
+                        if (q.section === 'sellados') createSellado();
+                        else if (q.section === 'cards') createCard();
+                      } else {
+                        setActive(q.section);
+                      }
+                    }}
                       style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-secondary)', textAlign: 'left', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '0.9rem', transition: 'all 0.2s' }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-primary)'; e.currentTarget.style.color = 'white'; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--glass-border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
@@ -242,39 +548,28 @@ const Admin = () => {
                 </div>
               </div>
 
-              {/* Site Preview Info */}
+              {/* Site Info */}
               <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '1.5rem' }}>
                 <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '800', marginBottom: '1.2rem', fontSize: '1rem' }}>📋 Información del Sitio</h4>
                 {[
                   { label: 'Nombre', val: content.siteName },
-                  { label: 'Tagline', val: content.tagline },
-                  { label: 'Email', val: content.contact.email },
-                  { label: 'WhatsApp', val: content.contact.whatsapp },
-                  { label: 'Instagram', val: content.social?.instagram || '—' },
+                  { label: 'Email', val: content.contact?.email },
+                  { label: 'WhatsApp', val: content.contact?.whatsapp },
+                  { label: 'Páginas Activas', val: `${activePages}/${pages.length}` },
                 ].map((row, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: i < 3 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{row.label}</span>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', maxWidth: '180px', textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.val}</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: '500' }}>{row.val}</span>
                   </div>
                 ))}
               </div>
-
-              {/* Color Preview */}
-              <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '1.5rem' }}>
-                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '800', marginBottom: '1.2rem', fontSize: '1rem' }}>🎨 Tema Actual</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                  {Object.entries(theme).map(([key, val]) => (
-                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                      <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: val, border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}></div>
-                      <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', flex: 1 }}>{key}</span>
-                      <code style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{val}</code>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
+
+            {/* Simulated Visits Chart */}
+            <SimpleBarChart data={analytics.visits_simulated} />
           </div>
         );
+      }
 
       // ── Pages / Menu ──────────────────────────────────────────────────────
       case 'pages':
@@ -410,6 +705,395 @@ const Admin = () => {
           </div>
         );
 
+      // ── Sellados (Sealed Products) ─────────────────────────────────────────
+      case 'sellados':
+        if (selladosLoading) {
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem' }}>
+              <div style={{ color: 'var(--text-secondary)' }}>Cargando productos...</div>
+            </div>
+          );
+        }
+
+        const selectedSellado = editingSellado ? sellados.find(s => s.id === editingSellado) : null;
+
+        return (
+          <div>
+            <h3 style={sectionTitle}><Package size={20} color="var(--accent-primary)" /> Productos Sellados</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2rem' }}>Gestiona Booster Boxes, ETBs, Decks, Bundles y más productos sellados.</p>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: splitView ? '1fr 1fr' : 'minmax(350px, 450px) 1fr', gap: '2rem', alignItems: 'start' }}>
+              {/* Sellados List */}
+              <div>
+                <button onClick={createSellado} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
+                  <Plus size={18} /> Nuevo Producto
+                </button>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: 'calc(100vh - 320px)', overflowY: 'auto' }}>
+                  {sellados.map(item => (
+                    <div key={item.id}
+                      onClick={() => setEditingSellado(item.id)}
+                      style={{
+                        padding: '1rem',
+                        background: editingSellado === item.id ? 'rgba(245,158,11,0.15)' : 'var(--glass-bg)',
+                        border: `1px solid ${editingSellado === item.id ? '#f59e0b' : 'var(--glass-border)'}`,
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        gap: '12px',
+                        alignItems: 'center',
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={e => { if (editingSellado !== item.id) e.currentTarget.style.borderColor = '#f59e0b'; }}
+                      onMouseLeave={e => { if (editingSellado !== item.id) e.currentTarget.style.borderColor = 'var(--glass-border)'; }}
+                    >
+                      <div style={{ width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <Package size={24} color="var(--glass-border)" />
+                        )}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h5 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: '700', color: 'white', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</h5>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{item.game} • {item.type}</p>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '0.7rem', background: 'rgba(245,158,11,0.2)', color: '#f59e0b', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>${item.price}</span>
+                          <span style={{ fontSize: '0.7rem', color: item.stock > 0 ? 'var(--text-secondary)' : '#ef4444' }}>Stock: {item.stock}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {sellados.length === 0 && (
+                    <div style={{ padding: '2rem', textAlign: 'center', background: 'var(--glass-bg)', border: '1px dashed var(--glass-border)', borderRadius: '10px' }}>
+                      <Package size={32} color="var(--glass-border)" style={{ marginBottom: '0.5rem' }} />
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>No hay productos sellados aún</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Sellado Editor */}
+              <div>
+                {selectedSellado ? (
+                  <div style={{ padding: '1.5rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', fontSize: '1.1rem' }}>Editando Producto</h4>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => deleteSellado(selectedSellado.id)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Trash2 size={14} /> Eliminar
+                        </button>
+                        <button onClick={() => setEditingSellado(null)} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>
+                          Cerrar
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Nombre</label>
+                        <input value={selectedSellado.name} onChange={e => updateSellado(selectedSellado.id, 'name', e.target.value)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Juego</label>
+                        <select value={selectedSellado.game} onChange={e => updateSellado(selectedSellado.id, 'game', e.target.value)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }}>
+                          <option value="pokemon">Pokémon TCG</option>
+                          <option value="yugioh">Yu-Gi-Oh!</option>
+                          <option value="magic">Magic: The Gathering</option>
+                          <option value="digimon">Digimon</option>
+                          <option value="onepiece">One Piece</option>
+                          <option value="dragonball">Dragon Ball</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Set / Expansión</label>
+                        <input value={selectedSellado.set} onChange={e => updateSellado(selectedSellado.id, 'set', e.target.value)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} placeholder="Ej: Scarlet & Violet" />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Tipo</label>
+                        <select value={selectedSellado.type} onChange={e => updateSellado(selectedSellado.id, 'type', e.target.value)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }}>
+                          <option value="booster-box">Booster Box</option>
+                          <option value="elite-trainer">Elite Trainer Box</option>
+                          <option value="booster">Booster / Sobre</option>
+                          <option value="deck">Deck</option>
+                          <option value="starter">Starter Deck</option>
+                          <option value="premium">Premium Collection</option>
+                          <option value="blister">Blister Pack</option>
+                          <option value="bundle">Booster Bundle</option>
+                          <option value="accessories">Accesorios</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Precio ($)</label>
+                        <input type="number" value={selectedSellado.price} onChange={e => updateSellado(selectedSellado.id, 'price', parseFloat(e.target.value) || 0)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} min="0" step="0.01" />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>% Descuento</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <input type="number" value={selectedSellado.discountPercent || 0} onChange={e => updateSellado(selectedSellado.id, 'discountPercent', parseInt(e.target.value) || 0)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} min="0" max="99" />
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '1.2rem' }}>%</span>
+                        </div>
+                        {selectedSellado.discountPercent > 0 && (
+                          <p style={{ fontSize: '0.7rem', color: '#10b981', marginTop: '4px' }}>
+                            Precio anterior: ${Math.round(selectedSellado.price / (1 - selectedSellado.discountPercent / 100)).toLocaleString('es-MX')}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Stock</label>
+                        <input type="number" value={selectedSellado.stock} onChange={e => updateSellado(selectedSellado.id, 'stock', parseInt(e.target.value) || 0)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} min="0" />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Badge</label>
+                        <select value={selectedSellado.badge || ''} onChange={e => updateSellado(selectedSellado.id, 'badge', e.target.value)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }}>
+                          <option value="">Sin badge</option>
+                          <option value="Nuevo">Nuevo</option>
+                          <option value="Preventa">Preventa</option>
+                          <option value="Oferta">Oferta</option>
+                          <option value="Agotado">Agotado</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Imagen</label>
+                        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', background: 'rgba(255,255,255,0.04)', border: '1px dashed var(--glass-border)', borderRadius: '8px', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.85rem', transition: 'all 0.2s' }}
+                          onDragOver={e => e.preventDefault()}
+                          onDrop={e => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file) uploadSelladoImage(selectedSellado.id, file); }}
+                        >
+                          <ImageIcon size={16} />
+                          {selectedSellado.imageUrl ? 'Cambiar' : 'Subir imagen'}
+                          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const file = e.target.files[0]; if (file) uploadSelladoImage(selectedSellado.id, file); }} />
+                        </label>
+                        {selectedSellado.imageUrl && (
+                          <div style={{ marginTop: '8px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
+                            <img src={selectedSellado.imageUrl} alt="Preview" style={{ width: '100%', height: '120px', objectFit: 'cover' }} />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '0.8rem' }}>
+                        <input type="checkbox" checked={selectedSellado.active} onChange={e => updateSellado(selectedSellado.id, 'active', e.target.checked)} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
+                        Visible en tienda
+                      </label>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--glass-bg)', border: '1px dashed var(--glass-border)', borderRadius: '12px', color: 'var(--text-secondary)' }}>
+                    <Package size={48} color="var(--glass-border)" style={{ marginBottom: '1rem' }} />
+                    <p>Selecciona un producto para editarlo</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+
+      // ── Cards TCG ─────────────────────────────────────────────────────────
+      case 'cards':
+        if (cardsLoading) {
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem' }}>
+              <div style={{ color: 'var(--text-secondary)' }}>Cargando cartas...</div>
+            </div>
+          );
+        }
+
+        const selectedCard = editingCard ? cards.find(c => c.id === editingCard) : null;
+
+        return (
+          <div>
+            <h3 style={sectionTitle}><Layers size={20} color="var(--accent-primary)" /> Cartas Sueltas</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2rem' }}>Gestiona cartas individuales: Holos, Raras, Ultra Rares, Full Arts y más.</p>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: splitView ? '1fr 1fr' : 'minmax(350px, 450px) 1fr', gap: '2rem', alignItems: 'start' }}>
+              {/* Card List */}
+              <div>
+                <button onClick={createCard} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
+                  <Plus size={18} /> Nueva Carta
+                </button>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: 'calc(100vh - 320px)', overflowY: 'auto' }}>
+                  {cards.map(card => (
+                    <div key={card.id}
+                      onClick={() => setEditingCard(card.id)}
+                      style={{
+                        padding: '1rem',
+                        background: editingCard === card.id ? 'rgba(59,130,246,0.15)' : 'var(--glass-bg)',
+                        border: `1px solid ${editingCard === card.id ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        gap: '12px',
+                        alignItems: 'center',
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={e => { if (editingCard !== card.id) e.currentTarget.style.borderColor = 'var(--accent-primary)'; }}
+                      onMouseLeave={e => { if (editingCard !== card.id) e.currentTarget.style.borderColor = 'var(--glass-border)'; }}
+                    >
+                      <div style={{ width: '60px', height: '84px', borderRadius: '6px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {card.imageUrl ? (
+                          <img src={card.imageUrl} alt={card.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <Layers size={24} color="var(--glass-border)" />
+                        )}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h5 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: '700', color: 'white', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.name}</h5>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{card.game} • {card.set}</p>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '0.7rem', background: card.rarity === 'Common' ? 'rgba(150,150,150,0.2)' : card.rarity === 'Rare' ? 'rgba(59,130,246,0.2)' : card.rarity === 'Ultra Rare' ? 'rgba(234,179,8,0.2)' : 'rgba(168,85,247,0.2)', color: card.rarity === 'Common' ? '#9ca3af' : card.rarity === 'Rare' ? '#3b82f6' : card.rarity === 'Ultra Rare' ? '#eab308' : '#a855f7', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>{card.rarity}</span>
+                          <span style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 'bold' }}>${card.price}</span>
+                          <span style={{ fontSize: '0.7rem', color: card.stock > 0 ? 'var(--text-secondary)' : '#ef4444' }}>Stock: {card.stock}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {cards.length === 0 && (
+                    <div style={{ padding: '2rem', textAlign: 'center', background: 'var(--glass-bg)', border: '1px dashed var(--glass-border)', borderRadius: '10px' }}>
+                      <Gamepad2 size={32} color="var(--glass-border)" style={{ marginBottom: '0.5rem' }} />
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>No hay cartas aún</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Card Editor */}
+              <div>
+                {selectedCard ? (
+                  <div style={{ padding: '1.5rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', fontSize: '1.1rem' }}>Editando Carta</h4>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => deleteCard(selectedCard.id)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Trash2 size={14} /> Eliminar
+                        </button>
+                        <button onClick={() => setEditingCard(null)} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>
+                          Cerrar
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Nombre</label>
+                        <input value={selectedCard.name} onChange={e => updateCard(selectedCard.id, 'name', e.target.value)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Juego</label>
+                        <select value={selectedCard.game} onChange={e => updateCard(selectedCard.id, 'game', e.target.value)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }}>
+                          <option value="Pokemon">Pokemon</option>
+                          <option value="Yu-Gi-Oh">Yu-Gi-Oh!</option>
+                          <option value="Magic">Magic: The Gathering</option>
+                          <option value="OnePiece">One Piece</option>
+                          <option value="Digimon">Digimon</option>
+                          <option value="DragonBall">Dragon Ball</option>
+                          <option value="Other">Otro</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Set / Expansión</label>
+                        <input value={selectedCard.set} onChange={e => updateCard(selectedCard.id, 'set', e.target.value)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} placeholder="Ej: Obsidian Flames" />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Rareza</label>
+                        <select value={selectedCard.rarity} onChange={e => updateCard(selectedCard.id, 'rarity', e.target.value)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }}>
+                          <option value="Common">Common</option>
+                          <option value="Uncommon">Uncommon</option>
+                          <option value="Rare">Rare</option>
+                          <option value="Super Rare">Super Rare</option>
+                          <option value="Ultra Rare">Ultra Rare</option>
+                          <option value="Secret Rare">Secret Rare</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Precio ($)</label>
+                        <input type="number" value={selectedCard.price} onChange={e => updateCard(selectedCard.id, 'price', parseFloat(e.target.value) || 0)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} min="0" step="0.01" />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Stock</label>
+                        <input type="number" value={selectedCard.stock} onChange={e => updateCard(selectedCard.id, 'stock', parseInt(e.target.value) || 0)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} min="0" />
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: '1.2rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Descripción</label>
+                      <textarea value={selectedCard.description || ''} onChange={e => updateCard(selectedCard.id, 'description', e.target.value)} rows={2} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.85rem' }} placeholder="Descripción opcional de la carta..." />
+                    </div>
+
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '0.8rem' }}>
+                        <input type="checkbox" checked={selectedCard.active} onChange={e => updateCard(selectedCard.id, 'active', e.target.checked)} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
+                        Visible en tienda
+                      </label>
+                    </div>
+
+                    {/* Image Upload */}
+                    <div style={{ marginTop: '1rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.8rem' }}>Imagen de la Carta</label>
+                      <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                        <div style={{ width: '120px', height: '168px', borderRadius: '8px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {selectedCard.imageUrl ? (
+                            <img src={selectedCard.imageUrl} alt={selectedCard.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <Layers size={32} color="var(--glass-border)" />
+                          )}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <input type="file" accept="image/*" id={`card-img-${selectedCard.id}`} style={{ display: 'none' }} onChange={async (e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              const url = await uploadCardImage(selectedCard.id, file);
+                              if (url) {
+                                toast.success('Imagen subida correctamente');
+                              }
+                            }
+                          }} />
+                          <label htmlFor={`card-img-${selectedCard.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 16px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600', transition: 'all 0.2s' }}
+                            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
+                            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}
+                          >
+                            <ImageIcon size={16} /> Subir Imagen
+                          </label>
+                          {selectedCard.imageUrl && (
+                            <button onClick={() => {
+                              updateCard(selectedCard.id, 'imageUrl', '');
+                            }} style={{ display: 'block', marginTop: '8px', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem' }}>
+                              Eliminar imagen
+                            </button>
+                          )}
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '8px' }}>PNG, JPG, WebP • Máx 5MB</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--glass-bg)', border: '1px dashed var(--glass-border)', borderRadius: '12px' }}>
+                    <Gamepad2 size={48} color="var(--glass-border)" style={{ marginBottom: '1rem' }} />
+                    <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Selecciona una carta para editarla</p>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', opacity: 0.7 }}>o crea una nueva carta</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+
       // ── Theme / Colors ────────────────────────────────────────────────────
       case 'theme':
         return (
@@ -540,24 +1224,18 @@ const Admin = () => {
                   const oldP = document.getElementById('oldPass').value;
                   const newP = document.getElementById('newPass').value;
                   if(!oldP || !newP) {
-                    const id = Date.now();
-                    setToasts(prev => [...prev, { id, msg: 'Llena ambos campos de contraseña', type: 'error' }]);
-                    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
+                    toast.error('Llena ambos campos de contraseña');
                     return;
                   }
                   const success = await changePassword(oldP, newP);
                   if(success) {
                     document.getElementById('oldPass').value = '';
                     document.getElementById('newPass').value = '';
-                    const id = Date.now();
-                    setToasts(prev => [...prev, { id, msg: 'Contraseña Actualizada Correctamente', type: 'success' }]);
-                    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
+                    toast.success('Contraseña Actualizada Correctamente');
                   } else {
-                    const id = Date.now();
-                    setToasts(prev => [...prev, { id, msg: 'Error al actualizar la contraseña / Actual errónea', type: 'error' }]);
-                    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3000);
+                    toast.error('Error al actualizar la contraseña / Actual errónea');
                   }
-                }} 
+                }}
                 style={{ padding: '10px 18px', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.5)', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'all 0.2s' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.2)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
@@ -945,7 +1623,7 @@ const Admin = () => {
               <a href="/" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'transparent', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-heading)', fontWeight: '600', textDecoration: 'none' }}>
                 <Eye size={15} /> Ver Sitio
               </a>
-              <button onClick={saveContent} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 20px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.9rem', fontFamily: 'var(--font-heading)', fontWeight: '700', boxShadow: '0 4px 14px var(--accent-glow)' }}>
+              <button onClick={() => { saveContent(); toast.success('Cambios guardados correctamente'); }} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 20px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.9rem', fontFamily: 'var(--font-heading)', fontWeight: '700', boxShadow: '0 4px 14px var(--accent-glow)' }}>
                 <Save size={17} /> Guardar
               </button>
             </div>
@@ -967,25 +1645,6 @@ const Admin = () => {
           </div>
         )}
       </div>
-
-      {/* Toast Notifications */}
-      <div style={{ position: 'fixed', bottom: '20px', right: '20px', display: 'flex', flexDirection: 'column', gap: '10px', zIndex: 9999 }}>
-        {toasts.map(t => (
-          <div key={t.id} style={{ 
-            background: t.type === 'success' ? '#10b981' : '#ef4444', 
-            color: 'white', padding: '12px 20px', borderRadius: '8px', 
-            boxShadow: '0 10px 25px rgba(0,0,0,0.2)', fontFamily: 'var(--font-body)', 
-            fontSize: '0.9rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px',
-            animation: 'slideIn 0.3s ease-out forwards'
-          }}>
-            {t.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
-            {t.msg}
-          </div>
-        ))}
-      </div>
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-      `}} />
     </div>
   );
 };

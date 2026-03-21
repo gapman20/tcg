@@ -8,6 +8,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
 import ScrollToTop from './components/ScrollToTop';
+import PageLoader from './components/PageLoader';
 
 // Lazy Loaded Pages
 const Home = React.lazy(() => import('./pages/Home'));
@@ -54,6 +55,7 @@ const AppContent = () => {
       <ScrollToTop />
       <Navbar />
       <main>
+        <PageLoader />
         <React.Suspense fallback={
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', color: 'var(--text-secondary)' }}>
             <div className="spinner">Cargando...</div>

@@ -1,75 +1,430 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Zap, Shield, Globe } from 'lucide-react';
+import { 
+  Shield, Truck, CreditCard, Package, ChevronLeft, ChevronRight,
+  Zap, Star, Clock, Tag, Sparkles, ShoppingCart, Heart
+} from 'lucide-react';
 import { useSite } from '../context/SiteContext';
+import { useCart } from '../context/CartContext';
 import SEO from '../components/SEO';
 
-const Home = () => {
-  const { content, images } = useSite();
-  const h = content.home;
+const GameCard = ({ name, icon, color }) => (
+  <Link 
+    to={`/catalogo?game=${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+    className="game-category-card"
+    style={{ '--game-color': color }}
+  >
+    <div className="game-category-icon">{icon}</div>
+    <span>{name}</span>
+  </Link>
+);
+
+const ProductCard = ({ product, onAddToCart }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  
+  const hasDiscount = product.originalPrice && product.originalPrice !== product.price;
+  const badgeClass = product.badge ? product.badge.toLowerCase().replace(/[^a-z]/g, '') : '';
+  
+  return (
+    <div 
+      className="tcg-product-card"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="product-image-container">
+        {product.image ? (
+          <img src={product.image} alt={product.name} className="product-image" />
+        ) : (
+          <div className="product-placeholder">
+            <Package size={48} color="var(--text-secondary)" />
+          </div>
+        )}
+        
+        {product.badge && (
+          <span className={`product-badge badge-${badgeClass}`}>
+            {product.badge}
+          </span>
+        )}
+        
+        {hasDiscount && (
+          <span className="product-badge badge-oferta">
+            -{Math.round((1 - product.price / product.originalPrice) * 100)}%
+          </span>
+        )}
+        
+        <div className={`product-actions ${isHovered || window.innerWidth < 768 ? 'visible' : ''}`}>
+          <button 
+            className="action-btn wishlist-btn"
+            onClick={() => setIsWishlisted(!isWishlisted)}
+          >
+            <Heart size={20} fill={isWishlisted ? 'var(--accent-primary)' : 'none'} />
+          </button>
+          <button className="action-btn cart-btn" onClick={() => onAddToCart(product)}>
+            <ShoppingCart size={20} />
+          </button>
+        </div>
+        
+        {product.stock === 0 && (
+          <div className="product-soldout-overlay">
+            <span>Agotado</span>
+          </div>
+        )}
+      </div>
+      
+      <div className="product-info">
+        <div className="product-tags">
+          {product.game && <span className="product-tag">{product.game}</span>}
+          {product.set && <span className="product-tag">{product.set}</span>}
+        </div>
+        <h3 className="product-name">{product.name}</h3>
+        <div className="product-price">
+          <span className="price-current">{product.price}</span>
+          {hasDiscount && (
+            <span className="price-original">{product.originalPrice}</span>
+          )}
+        </div>
+        <button 
+          className="add-to-cart-btn"
+          onClick={() => onAddToCart(product)}
+          disabled={product.stock === 0}
+        >
+          {product.stock === 0 ? 'Agotado' : 'Agregar al carrito'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const CountdownTimer = ({ targetDate }) => {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const calculateTime = () => {
+      const now = new Date().getTime();
+      const target = new Date(targetDate).getTime();
+      const difference = target - now;
+
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((difference % (1000 * 60)) / 1000)
+        });
+      }
+    };
+
+    calculateTime();
+    const timer = setInterval(calculateTime, 1000);
+    return () => clearInterval(timer);
+  }, [targetDate]);
 
   return (
-    <div className="home-page">
+    <div className="countdown-timer">
+      {[
+        { value: timeLeft.days, label: 'Días' },
+        { value: timeLeft.hours, label: 'Horas' },
+        { value: timeLeft.minutes, label: 'Min' },
+        { value: timeLeft.seconds, label: 'Seg' }
+      ].map((item, i) => (
+        <div key={i} className="countdown-item">
+          <span>{String(item.value).padStart(2, '0')}</span>
+          <small>{item.label}</small>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const ArrowRight = ({ size }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+    <polyline points="12 5 19 12 12 19"></polyline>
+  </svg>
+);
+
+const Home = () => {
+  const { addItem } = useCart();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [email, setEmail] = useState('');
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const carouselRef = useRef(null);
+
+  const banners = [
+    {
+      title: 'Mega Evolution: Phantasmal Flames',
+      subtitle: '¡Las llamas azules ya están aquí!',
+      image: 'https://images.unsplash.com/photo-1613771404784-3a5686aa2be3?w=1600',
+      link: '/catalogo'
+    },
+    {
+      title: 'Preventas Exclusivas',
+      subtitle: 'Chaos Rising y más novedades',
+      image: 'https://images.unsplash.com/photo-1585620385456-4759f9b5c7d9?w=1600',
+      link: '/catalogo?filter=preventa'
+    },
+    {
+      title: 'Ofertas de Temporada',
+      subtitle: 'Hasta 50% de descuento',
+      image: 'https://images.unsplash.com/photo-1606663889134-b1dedb5ed8b7?w=1600',
+      link: '/catalogo?filter=oferta'
+    }
+  ];
+
+  const games = [
+    { name: 'Pokémon TCG', icon: '🔴', color: '#ef4444' },
+    { name: 'Yu-Gi-Oh!', icon: '💛', color: '#f59e0b' },
+    { name: 'Magic', icon: '🔵', color: '#3b82f6' },
+    { name: 'Digimon', icon: '🟣', color: '#8b5cf6' },
+    { name: 'One Piece', icon: '🔴', color: '#dc2626' },
+    { name: 'Dragon Ball', icon: '🟠', color: '#f97316' }
+  ];
+
+  const featuredProducts = [
+    { id: '1', name: 'Charizard ex Premium Collection', price: '$2,999', game: 'Pokémon', set: 'Phantasmal Flames', badge: 'Nuevo', image: null, stock: 5 },
+    { id: '2', name: 'Elite Trainer Box - Mega Evolution', price: '$1,590', game: 'Pokémon', set: 'Mega Evolution', badge: 'Oferta', originalPrice: '$1,800', image: null, stock: 3 },
+    { id: '3', name: 'Booster Box Prismatic Evolutions', price: '$5,800', game: 'Pokémon', set: 'Scarlet & Violet', badge: 'Preventa', image: null, stock: 10 },
+    { id: '4', name: 'Deck Commander Marvel Super Heroes', price: '$890', game: 'Magic', set: 'Marvel', badge: 'Nuevo', image: null, stock: 8 },
+    { id: '5', name: 'Mega Garchomp ex Collection', price: '$4,500', game: 'Pokémon', set: 'Destined Rivals', badge: 'Agotado', image: null, stock: 0 },
+    { id: '6', name: 'Digimon BT-15 Booster Box', price: '$2,200', game: 'Digimon', set: 'BT-15', badge: 'Nuevo', image: null, stock: 4 },
+    { id: '7', name: 'Dragon Ball Super Starter Deck', price: '$450', game: 'Dragon Ball', set: 'Series', image: null, stock: 6 },
+    { id: '8', name: 'One Piece OP-10 Booster Box', price: '$1,800', game: 'One Piece', set: 'Royal Blood', badge: 'Preventa', image: null, stock: 7 }
+  ];
+
+  const offers = [
+    { id: 'o1', name: 'Micas Ultra Pro (100 pz)', price: '$38', originalPrice: '$70', image: null, stock: 20 },
+    { id: 'o2', name: 'Prismatic Evolutions Poster Collection', price: '$299', originalPrice: '$720', image: null, stock: 15 },
+    { id: 'o3', name: 'Journey Together Build & Battle', price: '$440', originalPrice: '$840', image: null, stock: 8 },
+    { id: 'o4', name: 'Surging Sparks Booster Box', price: '$4,200', originalPrice: '$6,200', image: null, stock: 5 }
+  ];
+
+  const trustBadges = [
+    { icon: <Shield size={28} />, title: 'Pago Seguro', desc: 'SSL 256-bit encryption' },
+    { icon: <Truck size={28} />, title: 'Envío 24-48h', desc: 'En empaques protegidos' },
+    { icon: <CreditCard size={28} />, title: ' múltiples', desc: 'Visa, Mastercard, PayPal' },
+    { icon: <Star size={28} />, title: 'Garantía', desc: 'Productos 100% originales' }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % banners.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [banners.length]);
+
+  const handleAddToCart = (product) => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      game: product.game
+    });
+  };
+
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    alert(`¡Gracias! Te suscribiste con: ${email}`);
+    setEmail('');
+  };
+
+  const nextSlide = () => setCurrentSlide(prev => (prev + 1) % banners.length);
+  const prevSlide = () => setCurrentSlide(prev => (prev - 1 + banners.length) % banners.length);
+
+  const handleTouchStart = (e) => {
+    setTouchEnd(0);
+    setTouchStart(e.target.getBoundingClientRect().x);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.target.getBoundingClientRect().x);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const minSwipeDistance = 50;
+    
+    if (distance > minSwipeDistance) {
+      nextSlide();
+    } else if (distance < -minSwipeDistance) {
+      prevSlide();
+    }
+  };
+
+  return (
+    <div className="tcg-home">
       <SEO 
         title="Inicio" 
-        description={h.subtitle || "Bienvenido a Electrica, servicios de clase mundial."} 
+        description="Adventure TCG - Tu tienda de cartas coleccionables. Pokémon, Yu-Gi-Oh!, Magic, Digimon y más."
       />
-      
-      {/* Decorative Orbs */}
-      <div className="orb-primary"></div>
-      <div className="orb-secondary"></div>
 
-      {/* Hero */}
-      <section className="home-hero" style={{ backgroundImage: images.heroBg ? `url(${images.heroBg})` : 'none' }}>
-        {/* Dark tint overlay when a bg image is set */}
-        {images.heroBg && <div className="hero-overlay"></div>}
-        <div className="animate-fade-up hero-content-wrapper">
-          <div className="hero-badge">
-            {h.badge}
-          </div>
-          <h1 className="h1-premium hero-title">
-            {h.title} <br />
-            <span className="text-gradient">{h.titleAccent}</span>
-          </h1>
-          <p className="subtitle hero-subtitle">{h.subtitle}</p>
-          <div className="hero-buttons">
-            <Link to="/contacto" className="btn-primary">
-              {h.ctaText} <ArrowRight size={20} />
-            </Link>
-            <Link to="/portafolio" className="btn-outline">{h.ctaSecondary}</Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="home-features">
-        <div className="container-1280">
-          <div className="features-header">
-            <h2 className="h2-premium">{h.featuresTitle}</h2>
-            <p className="subtitle">{h.featuresSubtitle}</p>
-          </div>
-          <div className="features-grid">
-            {[
-              { title: 'Velocidad Extrema', icon: <Zap size={32} color="var(--accent-primary)" />, desc: 'Optimizada al máximo para cargar en milisegundos, mejorando la retención de usuarios y el SEO.' },
-              { title: 'Seguridad Bancaria', icon: <Shield size={32} color="var(--accent-secondary)" />, desc: 'Protocolos de seguridad avanzados para proteger tu información y la de tus clientes.' },
-              { title: 'Alcance Global', icon: <Globe size={32} color="#10b981" />, desc: 'Diseño 100% responsivo adaptable a cualquier pantalla, en cualquier parte del mundo.' }
-            ].map((feat, i) => (
-              <div key={i} className={`glass-card animate-fade-up delay-${(i + 1) * 100}`}>
-                <div className="icon-wrapper">{feat.icon}</div>
-                <h3 className="feature-title">{feat.title}</h3>
-                <p>{feat.desc}</p>
+      {/* Hero Banner Carousel */}
+      <section className="hero-carousel">
+        <div 
+          className="carousel-container"
+          ref={carouselRef}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {banners.map((banner, index) => (
+            <div 
+              key={index}
+              className={`carousel-slide ${index === currentSlide ? 'active' : ''}`}
+              style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url(${banner.image})` }}
+            >
+              <div className="slide-content">
+                <span className="slide-badge">
+                  <Zap size={16} />
+                  {index === 1 ? '¡Última oportunidad!' : '¡Nuevo!'}
+                </span>
+                <h1>{banner.title}</h1>
+                <p>{banner.subtitle}</p>
+                <Link to={banner.link} className="btn-primary">
+                  Ver Ahora <ArrowRight size={18} />
+                </Link>
               </div>
+            </div>
+          ))}
+          
+          <button className="carousel-btn prev" onClick={prevSlide}>
+            <ChevronLeft size={28} />
+          </button>
+          <button className="carousel-btn next" onClick={nextSlide}>
+            <ChevronRight size={28} />
+          </button>
+          
+          <div className="carousel-dots">
+            {banners.map((_, index) => (
+              <button 
+                key={index}
+                className={`dot ${index === currentSlide ? 'active' : ''}`}
+                onClick={() => setCurrentSlide(index)}
+              />
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Strip */}
-      <section className="home-cta-section">
-        <div className="home-cta-card">
-          <h2 className="h2-premium cta-title">{h.ctaSectionTitle}</h2>
-          <p className="subtitle cta-subtitle">{h.ctaSectionSubtitle}</p>
-          <Link to="/servicios" className="btn-primary cta-button">Descubre Nuestros Servicios</Link>
+      {/* Game Categories */}
+      <section className="game-categories">
+        <div className="container">
+          {/* Grid for Desktop */}
+          <div className="games-grid">
+            {games.map((game, index) => (
+              <GameCard key={index} {...game} />
+            ))}
+          </div>
+          {/* Scroll for Mobile/Tablet */}
+          <div className="games-scroll-container">
+            <div className="games-scroll">
+              {games.map((game, index) => (
+                <GameCard key={`scroll-${index}`} {...game} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Products */}
+      <section className="featured-products">
+        <div className="container">
+          <div className="section-header">
+            <div>
+              <h2><Sparkles size={22} /> Recomendados</h2>
+              <p>Los productos más populares de la semana</p>
+            </div>
+            <Link to="/catalogo" className="view-all-link">
+              Ver todo <ArrowRight size={16} />
+            </Link>
+          </div>
+          
+          <div className="products-grid">
+            {featuredProducts.slice(0, 4).map(product => (
+              <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Special Offer Banner */}
+      <section className="special-offer-banner">
+        <div className="container">
+          <div className="offer-content">
+            <div className="offer-badge">
+              <Tag size={18} />
+              <span>Oferta Flash</span>
+            </div>
+            <h2>¡Descuentos de Temporada!</h2>
+            <p>Hasta 50% en productos seleccionados</p>
+            <CountdownTimer targetDate="2026-04-01" />
+            <Link to="/catalogo?filter=oferta" className="btn-primary">
+              Ver Ofertas <ArrowRight size={18} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Offers Section */}
+      <section className="offers-section">
+        <div className="container">
+          <div className="section-header">
+            <div>
+              <h2><Clock size={22} /> Ofertas</h2>
+              <p>Productos con precios especiales</p>
+            </div>
+            <Link to="/catalogo?filter=oferta" className="view-all-link">
+              Ver todas <ArrowRight size={16} />
+            </Link>
+          </div>
+          
+          <div className="offers-grid">
+            {offers.map(offer => (
+              <ProductCard key={offer.id} product={{ ...offer, badge: 'Oferta' }} onAddToCart={handleAddToCart} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Badges - Horizontal Scroll on Mobile */}
+      <section className="trust-section">
+        <div className="container">
+          <div className="trust-scroll-container">
+            <div className="trust-scroll">
+              {trustBadges.map((badge, index) => (
+                <div key={index} className="trust-badge">
+                  <div className="trust-icon">{badge.icon}</div>
+                  <h4>{badge.title}</h4>
+                  <p>{badge.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Newsletter - Responsive */}
+      <section className="newsletter-section">
+        <div className="container">
+          <div className="newsletter-content">
+            <h2>¡No te pierdas nuestras ofertas!</h2>
+            <p>Suscríbete para recibir promociones exclusivas y novedades</p>
+            <form onSubmit={handleSubscribe} className="newsletter-form">
+              <input 
+                type="email" 
+                placeholder="Tu correo electrónico"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <button type="submit" className="btn-primary">
+                Suscribirse
+              </button>
+            </form>
+          </div>
         </div>
       </section>
     </div>

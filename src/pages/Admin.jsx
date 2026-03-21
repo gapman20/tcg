@@ -9,7 +9,7 @@ import {
   MessageSquare, Zap, Users, TrendingUp, Monitor,
   ToggleLeft, ToggleRight, RefreshCw, Plus, Trash2, Package,
   Columns, ArrowUp, ArrowDown, Bold, List, BarChart, Lock,
-  Gamepad2, Layers, Tag
+  Gamepad2, Layers, Tag, Calendar, Percent
 } from 'lucide-react';
 
 // ─── Shared input style ───────────────────────────────────────────────────────
@@ -152,6 +152,7 @@ const sections = [
   { id: 'pages', label: 'Páginas & Menú', icon: <FileText size={17} /> },
   { id: 'sellados', label: 'Sellados', icon: <Package size={17} /> },
   { id: 'cards', label: 'Cartas Sueltas', icon: <Layers size={17} /> },
+  { id: 'campaigns', label: 'Campañas Oferta', icon: <Tag size={17} /> },
   { id: 'theme', label: 'Colores & Tema', icon: <Palette size={17} /> },
   { id: 'general', label: 'General', icon: <Settings size={17} /> },
   { id: 'seo', label: 'SEO', icon: <Globe size={17} /> },
@@ -177,6 +178,7 @@ const Admin = () => {
     products = [], createProduct, updateProduct, deleteProduct, moveProduct,
     analytics, trackAnalytics,
     inbox = [], markMessageRead, deleteMessage, logout,
+    campaigns = [], createCampaign, updateCampaign, deleteCampaign,
     saveContent, resetContent, saveStatus,
   } = useSite();
   const toast = useToast();
@@ -194,6 +196,9 @@ const Admin = () => {
   const [sellados, setSellados] = useState([]);
   const [selladosLoading, setSelladosLoading] = useState(false);
   const [editingSellado, setEditingSellado] = useState(null);
+
+  // Campaigns state
+  const [editingCampaign, setEditingCampaign] = useState(null);
 
   const onChange = (path, val) => updateContent(path, val);
 
@@ -231,6 +236,16 @@ const Admin = () => {
       } finally {
         setCardsLoading(false);
       }
+    }
+  }, [active]);
+
+  // Sync sellados and cards when entering campaigns section
+  useEffect(() => {
+    if (active === 'campaigns') {
+      const savedSellados = localStorage.getItem('tcg_sellados');
+      const savedCards = localStorage.getItem('tcg_cards');
+      if (savedSellados) setSellados(JSON.parse(savedSellados));
+      if (savedCards) setCards(JSON.parse(savedCards));
     }
   }, [active]);
 
@@ -1093,6 +1108,242 @@ const Admin = () => {
             </div>
           </div>
         );
+
+      // ── Campañas de Oferta ────────────────────────────────────────────────
+      case 'campaigns': {
+        const selectedCampaign = editingCampaign ? campaigns.find(c => c.id === editingCampaign) : null;
+        const activeCampaign = campaigns.find(c => {
+          if (!c.active) return false;
+          const now = new Date();
+          const start = new Date(c.startDate);
+          const end = new Date(c.endDate);
+          return now >= start && now <= end;
+        });
+
+        const allSellados = JSON.parse(localStorage.getItem('tcg_sellados') || '[]');
+        const allCards = JSON.parse(localStorage.getItem('tcg_cards') || '[]');
+        const allProducts = [...allSellados.map(s => ({ id: s.id, name: s.name, game: s.game, type: 'sellado' })), ...allCards.map(c => ({ id: c.id, name: c.name, game: c.game, type: 'carta' }))];
+        const selectedProducts = selectedCampaign?.selectedProducts || [];
+        const productScope = selectedProducts.length === 0 ? 'all' : 'selected';
+
+        return (
+          <div>
+            <h3 style={sectionTitle}><Tag size={20} color="var(--accent-primary)" /> Campañas de Oferta</h3>
+            <div style={{ padding: '14px 18px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '10px', marginBottom: '2rem', fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+              <strong style={{ color: 'white' }}>🎯 Ofertas Temporales:</strong> Crea campañas de descuento para todos los productos o selecciona productos específicos. Controla el % de descuento, fechas, productos y el banner.
+            </div>
+
+            {activeCampaign && (
+              <div style={{ padding: '1rem 1.5rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '10px', height: '10px', background: '#10b981', borderRadius: '50%', animation: 'pulse 2s infinite' }} />
+                <div>
+                  <p style={{ fontWeight: '700', color: 'white', marginBottom: '2px' }}>Oferta Activa Ahora</p>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    <strong style={{ color: '#10b981' }}>{activeCampaign.name}</strong> — {activeCampaign.discountPercent}% de descuento
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 450px) 1fr', gap: '2rem', alignItems: 'start' }}>
+              {/* Campaigns List */}
+              <div>
+                <button onClick={() => setEditingCampaign(createCampaign())} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
+                  <Plus size={18} /> Nueva Campaña
+                </button>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: 'calc(100vh - 400px)', overflowY: 'auto' }}>
+                  {campaigns.map(camp => {
+                    const now = new Date();
+                    const start = new Date(camp.startDate);
+                    const end = new Date(camp.endDate);
+                    const isActive = camp.active && now >= start && now <= end;
+                    const isExpired = camp.active && now > end;
+                    
+                    return (
+                      <div key={camp.id}
+                        onClick={() => setEditingCampaign(camp.id)}
+                        style={{
+                          padding: '1rem',
+                          background: editingCampaign === camp.id ? 'rgba(245,158,11,0.15)' : 'var(--glass-bg)',
+                          border: `1px solid ${editingCampaign === camp.id ? '#f59e0b' : isActive ? '#10b981' : 'var(--glass-border)'}`,
+                          borderRadius: '10px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={e => { if (editingCampaign !== camp.id) e.currentTarget.style.borderColor = '#f59e0b'; }}
+                        onMouseLeave={e => { if (editingCampaign !== camp.id) e.currentTarget.style.borderColor = 'var(--glass-border)'; }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <h5 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: '700', color: 'white' }}>{camp.name}</h5>
+                          <span style={{ 
+                            fontSize: '0.7rem', 
+                            fontWeight: 'bold',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            background: isActive ? 'rgba(16,185,129,0.2)' : isExpired ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)',
+                            color: isActive ? '#10b981' : isExpired ? '#ef4444' : '#f59e0b'
+                          }}>
+                            {isActive ? '● ACTIVA' : isExpired ? 'EXPIRADA' : camp.active ? 'PROGRAMADA' : 'INACTIVA'}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Percent size={12} /> {camp.discountPercent}%
+                          </span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Calendar size={12} /> {new Date(camp.endDate).toLocaleDateString('es-MX')}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {campaigns.length === 0 && (
+                    <div style={{ padding: '2rem', textAlign: 'center', background: 'var(--glass-bg)', border: '1px dashed var(--glass-border)', borderRadius: '10px' }}>
+                      <Tag size={32} color="var(--glass-border)" style={{ marginBottom: '0.5rem' }} />
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>No hay campañas aún</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Campaign Editor */}
+              <div>
+                {selectedCampaign ? (
+                  <div style={{ padding: '1.5rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', fontSize: '1.1rem' }}>Editando Campaña</h4>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => { if (confirm('¿Eliminar esta campaña?')) { deleteCampaign(selectedCampaign.id); setEditingCampaign(null); }}} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Trash2 size={14} /> Eliminar
+                        </button>
+                        <button onClick={() => setEditingCampaign(null)} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>
+                          Cerrar
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: '1.5rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Nombre de la Campaña</label>
+                      <input value={selectedCampaign.name} onChange={e => updateCampaign(selectedCampaign.id, 'name', e.target.value)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} placeholder="Ej: Navidad 2024" />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>% Descuento</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <input type="number" value={selectedCampaign.discountPercent} onChange={e => updateCampaign(selectedCampaign.id, 'discountPercent', parseInt(e.target.value) || 0)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} min="1" max="99" />
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '1.2rem' }}>%</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Color del Banner</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <input type="color" value={selectedCampaign.bannerColor || '#ef4444'} onChange={e => updateCampaign(selectedCampaign.id, 'bannerColor', e.target.value)} style={{ width: '40px', height: '36px', border: 'none', borderRadius: '6px', cursor: 'pointer', padding: '2px', background: 'transparent' }} />
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{selectedCampaign.bannerColor}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Fecha Inicio</label>
+                        <input type="datetime-local" value={selectedCampaign.startDate?.slice(0, 16)} onChange={e => updateCampaign(selectedCampaign.id, 'startDate', new Date(e.target.value).toISOString())} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Fecha Fin</label>
+                        <input type="datetime-local" value={selectedCampaign.endDate?.slice(0, 16)} onChange={e => updateCampaign(selectedCampaign.id, 'endDate', new Date(e.target.value).toISOString())} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} />
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: '1.5rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Texto del Banner</label>
+                      <input value={selectedCampaign.bannerText || ''} onChange={e => updateCampaign(selectedCampaign.id, 'bannerText', e.target.value)} style={{ ...inputSt, padding: '8px 12px', fontSize: '0.9rem' }} placeholder="Ej: ¡Black Friday! Hasta 30% OFF" />
+                    </div>
+
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                        <input type="checkbox" checked={selectedCampaign.active} onChange={e => updateCampaign(selectedCampaign.id, 'active', e.target.checked)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                        Campaña Activa
+                      </label>
+                      <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '4px', marginLeft: '28px' }}>Solo las activas se mostrarán en el sitio</p>
+                    </div>
+
+                    <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.8rem' }}>Aplicar descuento a:</label>
+                      <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '0.8rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: productScope === 'all' ? 'white' : 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: '500' }}>
+                          <input type="radio" name={`productScope-${selectedCampaign.id}`} checked={productScope === 'all'} onChange={() => updateCampaign(selectedCampaign.id, 'selectedProducts', [])} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
+                          Todos los productos
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: productScope === 'selected' ? 'white' : 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: '500' }}>
+                          <input type="radio" name={`productScope-${selectedCampaign.id}`} checked={productScope === 'selected'} onChange={() => { if (selectedProducts.length === 0) updateCampaign(selectedCampaign.id, 'selectedProducts', allProducts.map(p => p.id)); }} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
+                          Productos seleccionados
+                        </label>
+                      </div>
+                      <p style={{ fontSize: '0.75rem', color: '#10b981' }}>
+                        {productScope === 'all' ? '✓ El descuento se aplicará a todos los productos' : `✓ ${selectedProducts.length} producto(s) seleccionado(s)`}
+                      </p>
+                    </div>
+
+                    {productScope === 'selected' && (
+                      <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', maxHeight: '250px', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+                          <label style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Seleccionar Productos:</label>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button onClick={() => updateCampaign(selectedCampaign.id, 'selectedProducts', allProducts.map(p => p.id))} style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '4px', color: '#3b82f6', cursor: 'pointer' }}>Todos</button>
+                            <button onClick={() => updateCampaign(selectedCampaign.id, 'selectedProducts', [])} style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '4px', color: '#ef4444', cursor: 'pointer' }}>Ninguno</button>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                          {allProducts.map(product => (
+                            <label key={product.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', background: selectedProducts.includes(product.id) ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.03)', border: `1px solid ${selectedProducts.includes(product.id) ? 'rgba(16,185,129,0.4)' : 'var(--glass-border)'}`, borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                              <input type="checkbox" checked={selectedProducts.includes(product.id)} onChange={() => {
+                                const newSelected = selectedProducts.includes(product.id)
+                                  ? selectedProducts.filter(id => id !== product.id)
+                                  : [...selectedProducts, product.id];
+                                updateCampaign(selectedCampaign.id, 'selectedProducts', newSelected);
+                              }} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <span style={{ fontSize: '0.85rem', color: 'white', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</span>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{product.game} • {product.type}</span>
+                              </div>
+                            </label>
+                          ))}
+                          {allProducts.length === 0 && (
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>No hay productos disponibles</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Preview */}
+                    <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Vista previa del banner:</p>
+                      <div style={{ 
+                        background: selectedCampaign.bannerColor || '#ef4444',
+                        borderRadius: '8px',
+                        padding: '12px 20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}>
+                        <Tag size={16} color="white" />
+                        <span style={{ color: 'white', fontWeight: '700', fontSize: '0.9rem' }}>{selectedCampaign.bannerText || 'Texto del banner'}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--glass-bg)', border: '1px dashed var(--glass-border)', borderRadius: '12px', color: 'var(--text-secondary)' }}>
+                    <Tag size={48} color="var(--glass-border)" style={{ marginBottom: '1rem' }} />
+                    <p>Selecciona una campaña para editarla</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      }
 
       // ── Theme / Colors ────────────────────────────────────────────────────
       case 'theme':

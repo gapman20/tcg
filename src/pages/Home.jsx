@@ -8,6 +8,13 @@ import { useSite } from '../context/SiteContext';
 import { useCart } from '../context/CartContext';
 import SEO from '../components/SEO';
 
+const formatPrice = (value) => {
+  if (typeof value === 'number') {
+    return `$${value.toLocaleString('es-MX')}`;
+  }
+  return value;
+};
+
 const GameCard = ({ name, icon, color }) => (
   <Link 
     to={`/catalogo?game=${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
@@ -145,12 +152,15 @@ const ArrowRight = ({ size }) => (
 );
 
 const Home = () => {
-  const { addItem } = useCart();
+  const { addItem } = useCart ? useCart() : {};
+  const { getActiveCampaign: getCampaign } = useSite();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [email, setEmail] = useState('');
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const carouselRef = useRef(null);
+  
+  const activeCampaign = getCampaign ? getCampaign() : null;
 
   const banners = [
     {
@@ -350,23 +360,32 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Special Offer Banner */}
-      <section className="special-offer-banner">
-        <div className="container">
-          <div className="offer-content">
-            <div className="offer-badge">
-              <Tag size={18} />
-              <span>Oferta Flash</span>
+      {/* Special Offer Banner - Solo si hay campaña activa */}
+      {activeCampaign && (
+        <section className="special-offer-banner" style={{
+          background: `linear-gradient(135deg, ${activeCampaign.bannerColor}22, ${activeCampaign.bannerColor}11)`,
+          borderTop: `2px solid ${activeCampaign.bannerColor}`,
+          borderBottom: `2px solid ${activeCampaign.bannerColor}`
+        }}>
+          <div className="container">
+            <div className="offer-content">
+              <div className="offer-badge" style={{
+                background: activeCampaign.bannerColor,
+                boxShadow: `0 0 20px ${activeCampaign.bannerColor}66`
+              }}>
+                <Tag size={18} />
+                <span>{activeCampaign.bannerText}</span>
+              </div>
+              <h2>{activeCampaign.name} — {activeCampaign.discountPercent}% de descuento</h2>
+              <p>{activeCampaign.selectedProducts?.length > 0 ? `En productos seleccionados` : 'En todos los productos'}</p>
+              <CountdownTimer targetDate={activeCampaign.endDate} />
+              <Link to="/catalogo?filter=oferta" className="btn-primary">
+                Ver Ofertas <ArrowRight size={18} />
+              </Link>
             </div>
-            <h2>¡Descuentos de Temporada!</h2>
-            <p>Hasta 50% en productos seleccionados</p>
-            <CountdownTimer targetDate="2026-04-01" />
-            <Link to="/catalogo?filter=oferta" className="btn-primary">
-              Ver Ofertas <ArrowRight size={18} />
-            </Link>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Offers Section */}
       <section className="offers-section">

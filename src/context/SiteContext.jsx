@@ -160,6 +160,21 @@ const PAGES_KEY   = 'site_pages_v1';
 const PRODS_KEY   = 'site_products_v1';
 const ANALYTICS_KEY = 'site_analytics_v1';
 const INBOX_KEY   = 'site_inbox_v1';
+const CAMPAIGNS_KEY = 'site_campaigns_v1';
+
+const defaultCampaigns = [
+  {
+    id: 'camp-default',
+    name: 'Oferta de Lanzamiento',
+    discountPercent: 15,
+    startDate: new Date().toISOString(),
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    active: false,
+    bannerText: '¡Oferta de Lanzamiento!',
+    bannerColor: '#ef4444',
+    selectedProducts: [],
+  },
+];
 
 function deepMerge(target, source) {
   const result = { ...target };
@@ -281,6 +296,14 @@ export const SiteProvider = ({ children }) => {
       if (saved) return JSON.parse(saved);
     } catch { }
     return [];
+  });
+
+  const [campaigns, setCampaigns] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CAMPAIGNS_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch { }
+    return defaultCampaigns;
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -465,6 +488,65 @@ export const SiteProvider = ({ children }) => {
     });
   };
 
+  const getActiveCampaign = () => {
+    const now = new Date();
+    return campaigns.find(c => {
+      if (!c.active) return false;
+      const start = new Date(c.startDate);
+      const end = new Date(c.endDate);
+      return now >= start && now <= end;
+    }) || null;
+  };
+
+  const calculateDiscountedPrice = (originalPrice, campaign, productId = null) => {
+    if (!campaign) return originalPrice;
+    
+    const selectedProducts = campaign.selectedProducts || [];
+    if (selectedProducts.length > 0 && productId && !selectedProducts.includes(productId)) {
+      return originalPrice;
+    }
+    
+    const price = typeof originalPrice === 'number' ? originalPrice : parseFloat(String(originalPrice).replace(/[^0-9.]/g, '')) || 0;
+    const discount = price * (campaign.discountPercent / 100);
+    return Math.round((price - discount) * 100) / 100;
+  };
+
+  const createCampaign = () => {
+    const newCampaign = {
+      id: `camp-${Date.now()}`,
+      name: 'Nueva Campaña',
+      discountPercent: 10,
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      active: true,
+      bannerText: '¡Oferta Especial!',
+      bannerColor: '#f59e0b',
+      selectedProducts: [],
+    };
+    setCampaigns(prev => {
+      const updated = [newCampaign, ...prev];
+      localStorage.setItem(CAMPAIGNS_KEY, JSON.stringify(updated));
+      return updated;
+    });
+    return newCampaign.id;
+  };
+
+  const updateCampaign = (id, field, value) => {
+    setCampaigns(prev => {
+      const updated = prev.map(c => c.id === id ? { ...c, [field]: value } : c);
+      localStorage.setItem(CAMPAIGNS_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const deleteCampaign = (id) => {
+    setCampaigns(prev => {
+      const updated = prev.filter(c => c.id !== id);
+      localStorage.setItem(CAMPAIGNS_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const updateTheme = (key, value) => setTheme(prev => ({ ...prev, [key]: value }));
   const resetTheme  = () => setTheme(defaultTheme);
 
@@ -491,6 +573,7 @@ export const SiteProvider = ({ children }) => {
       localStorage.setItem(PAGES_KEY,   JSON.stringify(pages));
       localStorage.setItem(PRODS_KEY,   JSON.stringify(products));
       localStorage.setItem(ANALYTICS_KEY,JSON.stringify(analytics));
+      localStorage.setItem(CAMPAIGNS_KEY, JSON.stringify(campaigns));
       
       setSaveStatus('saved');
     } catch (error) {
@@ -502,13 +585,14 @@ export const SiteProvider = ({ children }) => {
   };
 
   const resetContent = () => {
-    [CONTENT_KEY, IMAGES_KEY, THEME_KEY, BLOG_KEY, PAGES_KEY, PRODS_KEY, ANALYTICS_KEY].forEach(k => localStorage.removeItem(k));
+    [CONTENT_KEY, IMAGES_KEY, THEME_KEY, BLOG_KEY, PAGES_KEY, PRODS_KEY, ANALYTICS_KEY, CAMPAIGNS_KEY].forEach(k => localStorage.removeItem(k));
     setContent(defaultContent);
     setImages(defaultImages);
     setTheme(defaultTheme);
     setBlogPosts(defaultBlogPosts);
     setPages(defaultPages);
     setProducts(defaultProducts);
+    setCampaigns(defaultCampaigns);
     setSaveStatus('saved');
     setTimeout(() => setSaveStatus(null), 3000);
   };
@@ -523,6 +607,8 @@ export const SiteProvider = ({ children }) => {
       products, createProduct, updateProduct, deleteProduct, moveProduct,
       analytics, trackAnalytics,
       inbox, addMessage, markMessageRead, deleteMessage,
+      campaigns, createCampaign, updateCampaign, deleteCampaign,
+      getActiveCampaign, calculateDiscountedPrice,
       isAuthenticated, login, logout, changePassword,
       saveContent, resetContent, saveStatus, loadingDb,
       user,

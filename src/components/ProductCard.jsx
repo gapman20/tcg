@@ -1,16 +1,26 @@
 import React from 'react';
-import { ShoppingCart, Heart } from 'lucide-react';
+import { ShoppingCart, Heart, Tag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useSite } from '../context/SiteContext';
 import { useToast } from './Toast';
 
 const ProductCard = ({ card }) => {
   const { addItem } = useCart();
   const { isInWishlist, toggleItem } = useWishlist();
+  const { getActiveCampaign, calculateDiscountedPrice } = useSite();
   const toast = useToast();
   const isOutOfStock = card.stock <= 0;
 
-  const formatPrice = (cents) => `$${(cents / 100).toFixed(2)}`;
+  const activeCampaign = getActiveCampaign ? getActiveCampaign() : null;
+  const hasCampaignDiscount = activeCampaign && !card.discountPercent;
+  
+  const originalPrice = typeof card.price === 'number' ? card.price * 100 : parseFloat(String(card.price || '0').replace(/[^0-9.]/g, '')) * 100 || 0;
+  const finalPrice = hasCampaignDiscount 
+    ? calculateDiscountedPrice(card.price, activeCampaign, card.id)
+    : card.price;
+  const displayPrice = typeof finalPrice === 'number' ? finalPrice : finalPrice;
+  const hasDiscount = card.discountPercent > 0 || (activeCampaign && !card.discountPercent);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -56,6 +66,15 @@ const ProductCard = ({ card }) => {
         {isOutOfStock && (
           <div className="product-card-out-of-stock">Sin Stock</div>
         )}
+        {hasDiscount && (
+          <div 
+            className="product-card-out-of-stock"
+            style={{ background: activeCampaign?.bannerColor || '#10b981', top: '8px', right: '8px', left: 'auto' }}
+          >
+            <Tag size={12} style={{ marginRight: '4px' }} />
+            {activeCampaign ? `${activeCampaign.discountPercent}% OFF` : `-${card.discountPercent}%`}
+          </div>
+        )}
         {card.rarity && (
           <span 
             className="product-card-rarity"
@@ -91,7 +110,16 @@ const ProductCard = ({ card }) => {
         <p className="product-card-game">{card.game}</p>
         {card.set && <p className="product-card-set">{card.set}</p>}
         <div className="product-card-footer">
-          <span className="product-card-price">{formatPrice(card.price)}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {hasDiscount && (
+              <span style={{ fontSize: '0.75rem', color: '#ef4444', textDecoration: 'line-through' }}>
+                ${typeof card.price === 'number' ? (card.price).toLocaleString('es-MX') : card.price}
+              </span>
+            )}
+            <span className="product-card-price">
+              ${typeof displayPrice === 'number' ? displayPrice.toLocaleString('es-MX') : displayPrice}
+            </span>
+          </div>
           {isOutOfStock ? (
             <button className="btn-outline product-card-btn" disabled>
               Agotado

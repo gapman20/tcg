@@ -1,18 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
-import { db, auth } from '../firebase';
+import { CartProvider } from './CartContext';
+import { OrderProvider } from './OrderContext';
 
-// ─── Default Text Content ─────────────────────────────────────────────────────
+const AUTH_KEY = 'is_authenticated';
+const ADMIN_PASS_KEY = 'admin_password';
+
 const defaultContent = {
-  siteName:  'MiEmpresa',
-  tagline:   'Soluciones web profesionales y administrables.',
+  siteName:  'Adventure',
+  tagline:   'Tu destino para cartas coleccionables.',
   ctaButton: 'Contáctanos',
 
   seo: {
-    title:       'MiEmpresa | Soluciones Web Profesionales',
-    description: 'Diseñamos sitios web de alto rendimiento, totalmente autogestionables, con diseño premium y enfoque en resultados.',
-    keywords:    'diseño web, marketing digital, apps móviles, sitio web profesional',
+    title:       'Adventure | Cartas Coleccionables',
+    description: 'Tu destino para cartas coleccionables. Pokémon, Yu-Gi-Oh!, Magic: The Gathering, Digimon y más.',
+    keywords:    'cartas coleccionables, Pokémon, Yu-Gi-Oh!, Magic, Digimon, Dragon Ball, One Piece, Lorcana, TCG',
   },
 
   social: {
@@ -29,55 +30,54 @@ const defaultContent = {
   },
 
   home: {
-    badge:              'NUEVA VERSIÓN 2024 DISPONIBLE',
-    title:              'Eleva tu Empresa al',
-    titleAccent:        'Siguiente Nivel Digital',
-    subtitle:           'Diseñamos experiencias web de alto rendimiento. Estética premium, arquitectura escalable y un panel de control completamente autogestionable pensado para maximizar tus ventas.',
-    ctaText:            'Cotiza tu Proyecto',
-    ctaSecondary:       'Ver Casos de Éxito',
-    featuresTitle:      'Tecnología de Vanguardia',
-    featuresSubtitle:   'No hacemos páginas comunes. Construimos ecosistemas digitales listos para competir y ganar en tu industria.',
-    ctaSectionTitle:    '¿Listo para el cambio?',
-    ctaSectionSubtitle: 'Únete a las empresas que ya están facturando más gracias a un ecosistema digital profesional.',
+    badge:              'TIENDA TCG #1',
+    title:              'Tu Destino para',
+    titleAccent:        'Cartas Coleccionables',
+    subtitle:           'Encuentra las mejores cartas de Pokémon, Yu-Gi-Oh!, Magic: The Gathering, Digimon, Dragon Ball, One Piece y más. Productos sellados y cartas sueltas.',
+    ctaText:            'Ver Catálogo',
+    ctaSecondary:       'Productos Sellados',
+    featuresTitle:      '¿Por qué elegirnos?',
+    featuresSubtitle:   'Ofrecemos la mejor experiencia de compra para coleccionistas y jugadores de TCG.',
+    ctaSectionTitle:    '¿Listo para tu próxima carta?',
+    ctaSectionSubtitle: 'Explora nuestro catálogo y encuentra esa carta que necesitas.',
   },
 
   about: {
-    title:      'Nosotros',
-    subtitle:   'Conoce al equipo detrás de las mejores experiencias digitales.',
+    title:      'Sobre Nosotros',
+    subtitle:   'Tu tienda de confianza para cartas coleccionables.',
     misionTitle:'Nuestra Misión',
-    misionText: 'Empoderar a empresas de todos los tamaños mediante el desarrollo de plataformas digitales robustas, escalables y visualmente impactantes.',
+    misionText: 'Brindar a los coleccionistas y jugadores de TCG acceso a la mejor selección de cartas, con servicio excepcional y precios justos.',
     visionTitle:'Nuestra Visión',
-    visionText: 'Ser la agencia de desarrollo web líder a nivel nacional, reconocida por nuestra excelencia en diseño (UI/UX) y soluciones autogestionables.',
+    visionText: 'Ser la tienda de cartas coleccionables más confiable y completa, ofreciendo una experiencia de compra excepcional para toda la comunidad TCG.',
   },
 
   services: {
-    title:    'Servicios Premium',
-    subtitle: 'Desarrollamos armas digitales. Tecnologías enfocadas en crecimiento exponencial.',
+    title:    'Nuestros Servicios',
+    subtitle: 'Todo lo que necesitas para tu pasión por las cartas.',
     cards: [
-      { id: '1', title: 'Diseño Web Ultrasónico',  desc: 'Interfaces de usuario vibrantes y animadas. Arquitectura frontend de última generación.', active: true },
-      { id: '2', title: 'Marketing de Dominación', desc: 'Estrategias SEM y SEO agresivas utilizando IA para posicionar tu marca en todos los frentes.', active: true },
-      { id: '3', title: 'Aplicaciones Móviles',    desc: 'Desarrollo nativo o híbrido que se siente fluido, pensado para la retención del usuario.', active: true },
-      { id: '4', title: 'Sistemas a Medida',       desc: 'CRMs y automatización de procesos complejos bajo arquitecturas robustas.', active: true },
+      { id: '1', title: 'Cartas Sueltas',  desc: 'Amplio catálogo de cartas individuales de Pokémon, Yu-Gi-Oh!, Magic, Digimon y más.', active: true },
+      { id: '2', title: 'Productos Sellados', desc: 'Booster Boxes, ETBs, Decks, Bundles y más. Siempre en preventa.', active: true },
+      { id: '3', title: 'Preventas',    desc: 'Sé el primero en conseguir los nuevos sets. Preventas disponibles para todos los juegos.', active: true },
+      { id: '4', title: 'Asesoría',       desc: 'Te ayudamos a encontrar las cartas que necesitas para tu colección o deck.', active: true },
     ],
   },
 
   contact: {
-    title:    'Comienza Ahora',
-    subtitle: 'El momento de escalar tus operaciones es hoy.',
+    title:    'Contáctanos',
+    subtitle: '¿Tienes preguntas? Estamos aquí para ayudarte.',
     whatsapp: '+52 (123) 456-7890',
-    email:    'hola@agenciadigital.com',
-    address:  'Av. Reforma 222, CDMX.',
+    email:    'hola@adventuretcg.com',
+    address:  'Tu ciudad, México.',
     mapLat:   19.4326,
     mapLng:   -99.1332,
   },
 
   footer: {
-    description: 'Soluciones web profesionales y autogestionables. Diseño premium, entrega rápida y resultados medibles.',
-    copyright:   'MiEmpresa. Todos los derechos reservados.',
+    description: 'Tu destino para cartas coleccionables. Pokémon, Yu-Gi-Oh!, Magic y más.',
+    copyright:   'Adventure TCG. Todos los derechos reservados.',
   },
 };
 
-// ─── Default Blog Posts ────────────────────────────────────────────────────────
 const defaultBlogPosts = [
   {
     id: 'post-1',
@@ -114,17 +114,14 @@ const defaultBlogPosts = [
   },
 ];
 
-// ─── Default Pages ─────────────────────────────────────────────────────────────
 const defaultPages = [
   { id: 'home', name: 'Inicio', path: '/', active: true, isCustom: false },
-  { id: 'about', name: 'Nosotros', path: '/nosotros', active: true, isCustom: false },
-  { id: 'services', name: 'Servicios', path: '/servicios', active: true, isCustom: false },
-  { id: 'products', name: 'Productos', path: '/productos', active: true, isCustom: false },
-  { id: 'portfolio', name: 'Portafolio', path: '/portafolio', active: true, isCustom: false },
-  { id: 'blog', name: 'Blog', path: '/blog', active: true, isCustom: false },
+  { id: 'sellados', name: 'Productos', path: '/productos', active: true, isCustom: false },
+  { id: 'cards', name: 'Cartas Sueltas', path: '/catalogo', active: true, isCustom: false },
+  { id: 'orders', name: 'Mis Pedidos', path: '/mis-pedidos', active: true, isCustom: false },
+  { id: 'contact', name: 'Contacto', path: '/contacto', active: true, isCustom: false },
 ];
 
-// ─── Default Products ────────────────────────────────────────────────────────
 const defaultProducts = [
   { id: 'prod-1', name: 'Foco LED 12W', description: 'Foco LED luz fría, alto rendimiento y bajo consumo. Ideal para interiores y exteriores techados.', price: '$45.00', image: null, active: true },
   { id: 'prod-2', name: 'Cable Calibre 12 THW', description: 'Rollo de cable de cobre de 100m. Resistente al calor y humedad. Colores disponibles: rojo, negro, verde y blanco.', price: '$1,250.00', image: null, active: true },
@@ -132,7 +129,6 @@ const defaultProducts = [
   { id: 'prod-4', name: 'Contacto Duplex con Placa', description: 'Contacto polarizado en color blanco, diseño moderno y fácil instalación.', price: '$35.00', image: null, active: true },
 ];
 
-// ─── Default Theme ────────────────────────────────────────────────────────────
 const defaultTheme = {
   accentPrimary:   '#3b82f6',
   accentSecondary: '#8b5cf6',
@@ -141,16 +137,14 @@ const defaultTheme = {
   bgTertiary:      '#111116',
   textPrimary:     '#ffffff',
   textSecondary:   '#a1a1aa',
-  // Explicit per-element controls
-  navbarColor:     '#0a0a0d',   // navbar background
-  cardBg:          '#0f0f14',   // glass cards background
+  navbarColor:     '#0a0a0d',
+  cardBg:          '#0f0f14',
   textNavbarPrimary:   '#ffffff',
   textNavbarSecondary: '#a1a1aa',
   textCardPrimary:     '#ffffff',
   textCardSecondary:   '#a1a1aa',
 };
 
-// ─── Default Images ────────────────────────────────────────────────────────────
 const defaultImages = {
   logo:      null,
   heroBg:    null,
@@ -158,7 +152,6 @@ const defaultImages = {
   portfolio: [null, null, null, null, null, null],
 };
 
-// ─── Storage Keys ──────────────────────────────────────────────────────────────
 const CONTENT_KEY = 'site_content_v1';
 const IMAGES_KEY  = 'site_images_v1';
 const THEME_KEY   = 'site_theme_v1';
@@ -166,11 +159,8 @@ const BLOG_KEY    = 'site_blog_v1';
 const PAGES_KEY   = 'site_pages_v1';
 const PRODS_KEY   = 'site_products_v1';
 const ANALYTICS_KEY = 'site_analytics_v1';
-const AUTH_KEY    = 'site_auth_v1';
-const PASS_KEY    = 'site_pass_v1';
 const INBOX_KEY   = 'site_inbox_v1';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function deepMerge(target, source) {
   const result = { ...target };
   for (const key of Object.keys(source)) {
@@ -193,7 +183,6 @@ function moveArrayItem(arr, index, direction) {
   return newArr;
 }
 
-// Applies ALL theme variables to CSS custom properties — controls navbar, cards, etc.
 function applyTheme(theme) {
   const root = document.documentElement;
 
@@ -207,28 +196,23 @@ function applyTheme(theme) {
   root.style.setProperty('--text-primary',      theme.textPrimary);
   root.style.setProperty('--text-secondary',    theme.textSecondary);
 
-  // Module-specific text colors
   root.style.setProperty('--text-navbar-primary',   theme.textNavbarPrimary || theme.textPrimary);
   root.style.setProperty('--text-navbar-secondary', theme.textNavbarSecondary || theme.textSecondary);
   root.style.setProperty('--text-card-primary',     theme.textCardPrimary || theme.textPrimary);
   root.style.setProperty('--text-card-secondary',   theme.textCardSecondary || theme.textSecondary);
 
-  // Navbar — uses navbarColor with 90% opacity for the glassmorphism effect
   const navColor = theme.navbarColor || theme.bgSecondary;
-  root.style.setProperty('--nav-bg',      navColor + 'e6');  // 90% opacity
-  root.style.setProperty('--nav-menu-bg', navColor + 'fa');  // 98% opacity (mobile menu)
+  root.style.setProperty('--nav-bg',      navColor + 'e6');
+  root.style.setProperty('--nav-menu-bg', navColor + 'fa');
 
-  // Cards / glass elements — uses cardBg directly
   const card = theme.cardBg || theme.bgSecondary;
   root.style.setProperty('--glass-bg', card);
 
-  // Border: automatically adapts to dark/light
   const isLight = theme.bgPrimary > '#888888';
   root.style.setProperty('--glass-border',
     isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.09)');
 }
 
-// ─── Context ──────────────────────────────────────────────────────────────────
 const SiteContext = createContext(null);
 
 export const SiteProvider = ({ children }) => {
@@ -236,7 +220,7 @@ export const SiteProvider = ({ children }) => {
     try {
       const saved = localStorage.getItem(CONTENT_KEY);
       if (saved) return deepMerge(defaultContent, JSON.parse(saved));
-    } catch { /* ignore */ }
+    } catch { }
     return defaultContent;
   });
 
@@ -244,7 +228,7 @@ export const SiteProvider = ({ children }) => {
     try {
       const saved = localStorage.getItem(IMAGES_KEY);
       if (saved) return { ...defaultImages, ...JSON.parse(saved) };
-    } catch { /* ignore */ }
+    } catch { }
     return defaultImages;
   });
 
@@ -252,7 +236,7 @@ export const SiteProvider = ({ children }) => {
     try {
       const saved = localStorage.getItem(THEME_KEY);
       if (saved) return { ...defaultTheme, ...JSON.parse(saved) };
-    } catch { /* ignore */ }
+    } catch { }
     return defaultTheme;
   });
 
@@ -260,7 +244,7 @@ export const SiteProvider = ({ children }) => {
     try {
       const saved = localStorage.getItem(BLOG_KEY);
       if (saved) return JSON.parse(saved);
-    } catch { /* ignore */ }
+    } catch { }
     return defaultBlogPosts;
   });
 
@@ -268,7 +252,7 @@ export const SiteProvider = ({ children }) => {
     try {
       const saved = localStorage.getItem(PAGES_KEY);
       if (saved) return JSON.parse(saved);
-    } catch { /* ignore */ }
+    } catch { }
     return defaultPages;
   });
 
@@ -276,7 +260,7 @@ export const SiteProvider = ({ children }) => {
     try {
       const saved = localStorage.getItem(PRODS_KEY);
       if (saved) return JSON.parse(saved);
-    } catch { /* ignore */ }
+    } catch { }
     return defaultProducts;
   });
 
@@ -284,10 +268,10 @@ export const SiteProvider = ({ children }) => {
     try {
       const saved = localStorage.getItem(ANALYTICS_KEY);
       if (saved) return JSON.parse(saved);
-    } catch { /* ignore */ }
+    } catch { }
     return {
       whatsapp_clicks: 0,
-      visits_simulated: [120, 150, 200, 180, 250, 310, 290] // Simulamos 7 días
+      visits_simulated: [120, 150, 200, 180, 250, 310, 290]
     };
   });
 
@@ -295,52 +279,19 @@ export const SiteProvider = ({ children }) => {
     try {
       const saved = localStorage.getItem(INBOX_KEY);
       if (saved) return JSON.parse(saved);
-    } catch { /* ignore */ }
+    } catch { }
     return [];
   });
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem(AUTH_KEY) === 'true';
+  });
   const [saveStatus, setSaveStatus] = useState(null);
-  const [loadingDb, setLoadingDb] = useState(true);
+  const [loadingDb, setLoadingDb] = useState(false);
+  const [user, setUser] = useState(null);
 
-  // Firebase Auth Listener
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user);
-    });
-    return unsubscribe;
-  }, []);
-
-  // Load from Firebase on mount
-  useEffect(() => {
-    const loadFromDb = async () => {
-      try {
-        const docRef = doc(db, 'site_data', 'main');
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          if (data.content) setContent(deepMerge(defaultContent, data.content));
-          if (data.images) setImages({ ...defaultImages, ...data.images });
-          if (data.theme) setTheme({ ...defaultTheme, ...data.theme });
-          if (data.blogPosts) setBlogPosts(data.blogPosts);
-          if (data.pages) setPages(data.pages);
-          if (data.products) setProducts(data.products);
-          if (data.analytics) setAnalytics(data.analytics);
-          if (data.inbox) setInbox(data.inbox);
-        }
-      } catch (e) {
-        console.error("Error loading from Firebase:", e);
-      } finally {
-        setLoadingDb(false);
-      }
-    };
-    loadFromDb();
-  }, []);
-
-  // Apply every theme change live (real-time preview)
   useEffect(() => { applyTheme(theme); }, [theme]);
 
-  // ── Content helpers ───────────────────────────────────────────────────────
   const updateContent = (path, value) => {
     setContent(prev => {
       const next = deepMerge({}, prev);
@@ -368,7 +319,6 @@ export const SiteProvider = ({ children }) => {
     });
   };
 
-  // ── Blog helpers ──────────────────────────────────────────────────────────
   const createBlogPost = () => {
     const newPost = {
       id:        `post-${Date.now()}`,
@@ -402,7 +352,6 @@ export const SiteProvider = ({ children }) => {
     });
   };
 
-  // ── Pages helpers ─────────────────────────────────────────────────────────
   const createPage = () => {
     const newPage = {
       id:          `page-${Date.now()}`,
@@ -431,7 +380,6 @@ export const SiteProvider = ({ children }) => {
     setPages(prev => moveArrayItem(prev, index, direction));
   };
 
-  // ── Products helpers ──────────────────────────────────────────────────────
   const createProduct = () => {
     const newProduct = {
       id:          `prod-${Date.now()}`,
@@ -457,7 +405,6 @@ export const SiteProvider = ({ children }) => {
     setProducts(prev => moveArrayItem(prev, index, direction));
   };
 
-  // ── Analytics helpers ───────────────────────────────────────────────────
   const trackAnalytics = (event) => {
     setAnalytics(prev => {
       const next = { ...prev };
@@ -467,34 +414,32 @@ export const SiteProvider = ({ children }) => {
     });
   };
 
-  // ── Auth helpers ────────────────────────────────────────────────────────
   const login = async (email, pass) => {
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
+    const storedPass = localStorage.getItem(ADMIN_PASS_KEY) || 'admin123';
+    if (pass === storedPass) {
+      localStorage.setItem(AUTH_KEY, 'true');
+      setIsAuthenticated(true);
+      setUser({ email, isAdmin: true });
       return true;
-    } catch {
-      return false;
     }
-  };
-  const logout = async () => {
-    await signOut(auth);
-  };
-  const changePassword = async (oldPass, newPass) => {
-    try {
-      const user = auth.currentUser;
-      if (user) {
-        const credential = EmailAuthProvider.credential(user.email, oldPass);
-        await reauthenticateWithCredential(user, credential);
-        await updatePassword(user, newPass);
-        return true;
-      }
-      return false;
-    } catch {
-      return false;
-    }
+    return false;
   };
 
-  // ── Inbox helpers ───────────────────────────────────────────────────────
+  const logout = async () => {
+    localStorage.removeItem(AUTH_KEY);
+    setIsAuthenticated(false);
+    setUser(null);
+  };
+
+  const changePassword = async (oldPass, newPass) => {
+    const storedPass = localStorage.getItem(ADMIN_PASS_KEY) || 'admin123';
+    if (oldPass === storedPass) {
+      localStorage.setItem(ADMIN_PASS_KEY, newPass);
+      return true;
+    }
+    return false;
+  };
+
   const addMessage = (msg) => {
     const newMsg = { ...msg, id: Date.now(), date: new Date().toISOString(), read: false };
     setInbox(prev => {
@@ -503,6 +448,7 @@ export const SiteProvider = ({ children }) => {
       return updated;
     });
   };
+
   const markMessageRead = (id) => {
     setInbox(prev => {
       const updated = prev.map(m => m.id === id ? { ...m, read: true } : m);
@@ -510,6 +456,7 @@ export const SiteProvider = ({ children }) => {
       return updated;
     });
   };
+
   const deleteMessage = (id) => {
     setInbox(prev => {
       const updated = prev.filter(m => m.id !== id);
@@ -518,11 +465,9 @@ export const SiteProvider = ({ children }) => {
     });
   };
 
-  // ── Theme helpers ─────────────────────────────────────────────────────────
   const updateTheme = (key, value) => setTheme(prev => ({ ...prev, [key]: value }));
   const resetTheme  = () => setTheme(defaultTheme);
 
-  // ── Image helpers ─────────────────────────────────────────────────────────
   const updateImage = (key, base64, index = null) => {
     setImages(prev => {
       if (index !== null) {
@@ -535,25 +480,10 @@ export const SiteProvider = ({ children }) => {
   };
   const removeImage = (key, index = null) => updateImage(key, null, index);
 
-  // ── Persist ───────────────────────────────────────────────────────────────
   const saveContent = async () => {
     try {
       setSaveStatus('saving');
       
-      // Save to Firebase
-      const dataToSave = {
-        content,
-        images,
-        theme,
-        blogPosts,
-        pages,
-        products,
-        analytics,
-        inbox
-      };
-      await setDoc(doc(db, 'site_data', 'main'), dataToSave);
-
-      // Save to localStorage as backup/cache
       localStorage.setItem(CONTENT_KEY, JSON.stringify(content));
       localStorage.setItem(IMAGES_KEY,  JSON.stringify(images));
       localStorage.setItem(THEME_KEY,   JSON.stringify(theme));
@@ -564,7 +494,7 @@ export const SiteProvider = ({ children }) => {
       
       setSaveStatus('saved');
     } catch (error) {
-      console.error("Error saving to Firebase:", error);
+      console.error("Error saving content:", error);
       setSaveStatus('error');
     } finally {
       setTimeout(() => setSaveStatus(null), 3000);
@@ -595,8 +525,13 @@ export const SiteProvider = ({ children }) => {
       inbox, addMessage, markMessageRead, deleteMessage,
       isAuthenticated, login, logout, changePassword,
       saveContent, resetContent, saveStatus, loadingDb,
+      user,
     }}>
-      {children}
+      <CartProvider user={user}>
+        <OrderProvider>
+          {children}
+        </OrderProvider>
+      </CartProvider>
     </SiteContext.Provider>
   );
 };

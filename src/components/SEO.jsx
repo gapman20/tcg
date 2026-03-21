@@ -1,10 +1,12 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useSite } from '../context/SiteContext';
 
 const SEO = ({ title, description, keywords, image, url }) => {
-  const siteTitle = 'Electrica | Servicios de Clase Mundial';
-  const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
-  const defaultDesc = 'Descubre nuestros servicios de primera calidad y diseño de clase mundial.';
+  const { content } = useSite();
+  const siteTitle = content?.siteName ? `${content.siteName} | Cartas Coleccionables` : 'Adventure TCG';
+  const fullTitle = title ? `${title} | ${content?.siteName || 'Adventure'}` : siteTitle;
+  const defaultDesc = content?.tagline || 'Tu destino para cartas coleccionables.';
   
   return (
     <Helmet>

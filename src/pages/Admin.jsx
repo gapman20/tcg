@@ -22,7 +22,7 @@ const inputSt = {
   outline: 'none', resize: 'vertical',
   transition: 'border-color 0.2s',
 };
-const focus = e => (e.target.style.borderColor = 'var(--accent-primary)');
+const focus = e => (e.target.style.borderColor = 'var(--accent-gold)');
 const blur = e => (e.target.style.borderColor = 'var(--glass-border)');
 
 const sectionTitle = {
@@ -58,7 +58,7 @@ const ColorPicker = ({ label, value, onChange, hint }) => (
     <div style={{ flex: 1 }}>
       <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>{label}</label>
       {hint && <p style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', opacity: 0.6 }}>{hint}</p>}
-      <code style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', fontFamily: 'monospace' }}>{value}</code>
+      <code style={{ fontSize: '0.85rem', color: 'var(--accent-gold)', fontFamily: 'monospace' }}>{value}</code>
     </div>
   </div>
 );
@@ -93,7 +93,7 @@ const SimpleBarChart = ({ data }) => {
           <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', fontWeight: '800' }}>Visitas del Sitio</h4>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Últimos 7 días (Datos Simulados)</p>
         </div>
-        <div style={{ background: 'rgba(59,130,246,0.1)', color: 'var(--accent-primary)', padding: '6px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ background: 'rgba(245,158,11,0.1)', color: 'var(--accent-gold)', padding: '6px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <TrendingUp size={14} /> +12% esta semana
         </div>
       </div>
@@ -109,7 +109,7 @@ const SimpleBarChart = ({ data }) => {
                   title={`${val} visitas`}
                   style={{ 
                     width: '80%', height: `${heightPct}%`, 
-                    background: i === data.length - 1 ? 'var(--accent-gradient)' : 'var(--accent-primary)',
+                    background: i === data.length - 1 ? 'var(--accent-gold)' : 'var(--accent-gold)',
                     opacity: i === data.length - 1 ? 1 : 0.6,
                     borderRadius: '4px 4px 0 0',
                     transition: 'all 0.5s ease-out',
@@ -459,14 +459,14 @@ const Admin = () => {
 
         return (
           <div>
-            <h3 style={sectionTitle}><LayoutDashboard size={20} color="var(--accent-primary)" /> Panel de Estadísticas</h3>
+            <h3 style={sectionTitle}><LayoutDashboard size={20} color="var(--accent-gold)" /> Panel de Estadísticas</h3>
             
             {/* Period Filter */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
               {['Hoy', 'Esta Semana', 'Este Mes'].map((period, i) => (
                 <button key={period} style={{
                   padding: '8px 16px',
-                  background: i === 1 ? 'var(--accent-gradient)' : 'var(--glass-bg)',
+                  background: i === 1 ? 'var(--accent-gold)' : 'var(--glass-bg)',
                   border: '1px solid var(--glass-border)',
                   borderRadius: '8px',
                   color: i === 1 ? 'white' : 'var(--text-secondary)',
@@ -530,7 +530,7 @@ const Admin = () => {
                         <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{gameProducts.length}</span>
                       </div>
                       <div style={{ height: '6px', background: 'var(--glass-border)', borderRadius: '3px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${percentage}%`, background: 'var(--accent-gradient)', borderRadius: '3px', transition: 'width 0.5s ease' }} />
+                        <div style={{ height: '100%', width: `${percentage}%`, background: 'var(--accent-gold)', borderRadius: '3px', transition: 'width 0.5s ease' }} />
                       </div>
                     </div>
                   );
@@ -556,7 +556,7 @@ const Admin = () => {
                       }
                     }}
                       style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-secondary)', textAlign: 'left', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '0.9rem', transition: 'all 0.2s' }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-primary)'; e.currentTarget.style.color = 'white'; }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-gold)'; e.currentTarget.style.color = 'white'; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--glass-border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                     >{q.label}</button>
                   ))}
@@ -590,19 +590,19 @@ const Admin = () => {
       case 'pages':
         return (
           <div>
-            <h3 style={sectionTitle}><FileText size={20} color="var(--accent-primary)" /> Páginas & Menú</h3>
+            <h3 style={sectionTitle}><FileText size={20} color="var(--accent-gold)" /> Páginas & Menú</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2rem' }}>Activa o desactiva las páginas, cambia su nombre en el menú, o crea páginas personalizadas nuevas.</p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginBottom: '2.5rem' }}>
               {pages.map((page, i) => (
-                <div key={page.id} style={{ padding: '1.5rem', background: 'var(--glass-bg)', border: `1px solid ${page.active ? 'var(--accent-primary)' : 'var(--glass-border)'}`, borderRadius: '12px' }}>
+                <div key={page.id} style={{ padding: '1.5rem', background: 'var(--glass-bg)', border: `1px solid ${page.active ? 'var(--accent-gold)' : 'var(--glass-border)'}`, borderRadius: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <span style={{ fontFamily: 'var(--font-heading)', fontWeight: '800', fontSize: '1.1rem', color: page.active ? 'white' : 'var(--text-secondary)' }}>{page.name}</span>
                       {page.isCustom ? 
                         <span style={{ fontSize: '0.7rem', background: 'rgba(245,158,11,0.2)', color: '#f59e0b', padding: '3px 8px', borderRadius: '4px', fontWeight: 'bold' }}>Personalizada</span> 
                         : 
-                        <span style={{ fontSize: '0.7rem', background: 'rgba(59,130,246,0.2)', color: '#3b82f6', padding: '3px 8px', borderRadius: '4px', fontWeight: 'bold' }}>Integrada</span>
+                        <span style={{ fontSize: '0.7rem', background: 'rgba(245,158,11,0.2)', color: '#f59e0b', padding: '3px 8px', borderRadius: '4px', fontWeight: 'bold' }}>Integrada</span>
                       }
                     </div>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -636,7 +636,7 @@ const Admin = () => {
                   
                   {page.isCustom && (
                     <div style={{ marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
-                      <h4 style={{ fontFamily: 'var(--font-heading)', color: 'var(--accent-primary)', marginBottom: '1rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Contenido Visual</h4>
+                      <h4 style={{ fontFamily: 'var(--font-heading)', color: 'var(--accent-gold)', marginBottom: '1rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Contenido Visual</h4>
                       
                       <div style={{ marginBottom: '1.2rem' }}>
                         <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Título de la Página</label>
@@ -661,7 +661,7 @@ const Admin = () => {
               ))}
             </div>
             
-            <button onClick={() => createPage()} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', background: 'var(--glass-bg)', border: '1px dashed var(--glass-border)', borderRadius: '12px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 'bold', width: '100%', justifyContent: 'center', transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}>
+            <button onClick={() => createPage()} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', background: 'var(--glass-bg)', border: '1px dashed var(--glass-border)', borderRadius: '12px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 'bold', width: '100%', justifyContent: 'center', transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-gold)'} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}>
               <Plus size={18} /> Agregar Nueva Página
             </button>
           </div>
@@ -671,7 +671,7 @@ const Admin = () => {
       case 'products':
         return (
           <div>
-            <h3 style={sectionTitle}><Package size={20} color="var(--accent-primary)" /> Catálogo de Productos</h3>
+            <h3 style={sectionTitle}><Package size={20} color="var(--accent-gold)" /> Catálogo de Productos</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2rem' }}>Gestiona los productos eléctricos que se mostrarán en la página de Productos.</p>
             
             <button className="btn-primary" onClick={() => createProduct()} style={{ marginBottom: '2.5rem', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontSize: '0.9rem' }}>
@@ -680,7 +680,7 @@ const Admin = () => {
             
             <div style={{ display: 'grid', gridTemplateColumns: splitView ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
               {products.map((prod, i) => (
-                <div key={prod.id} style={{ padding: '1.5rem', background: 'var(--glass-bg)', border: `1px solid ${prod.active ? 'var(--accent-primary)' : 'var(--glass-border)'}`, borderRadius: '12px' }}>
+                <div key={prod.id} style={{ padding: '1.5rem', background: 'var(--glass-bg)', border: `1px solid ${prod.active ? 'var(--accent-gold)' : 'var(--glass-border)'}`, borderRadius: '12px' }}>
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
                     <div style={{ display: 'flex', gap: '4px' }}>
@@ -734,13 +734,13 @@ const Admin = () => {
 
         return (
           <div>
-            <h3 style={sectionTitle}><Package size={20} color="var(--accent-primary)" /> Productos Sellados</h3>
+            <h3 style={sectionTitle}><Package size={20} color="var(--accent-gold)" /> Productos Sellados</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2rem' }}>Gestiona Booster Boxes, ETBs, Decks, Bundles y más productos sellados.</p>
             
             <div style={{ display: 'grid', gridTemplateColumns: splitView ? '1fr 1fr' : 'minmax(350px, 450px) 1fr', gap: '2rem', alignItems: 'start' }}>
               {/* Sellados List */}
               <div>
-                <button onClick={createSellado} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '10px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
+                <button onClick={createSellado} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gold)', border: 'none', borderRadius: '10px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
                   <Plus size={18} /> Nuevo Producto
                 </button>
 
@@ -927,13 +927,13 @@ const Admin = () => {
 
         return (
           <div>
-            <h3 style={sectionTitle}><Layers size={20} color="var(--accent-primary)" /> Cartas Sueltas</h3>
+            <h3 style={sectionTitle}><Layers size={20} color="var(--accent-gold)" /> Cartas Sueltas</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2rem' }}>Gestiona cartas individuales: Holos, Raras, Ultra Rares, Full Arts y más.</p>
             
             <div style={{ display: 'grid', gridTemplateColumns: splitView ? '1fr 1fr' : 'minmax(350px, 450px) 1fr', gap: '2rem', alignItems: 'start' }}>
               {/* Card List */}
               <div>
-                <button onClick={createCard} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '10px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
+                <button onClick={createCard} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gold)', border: 'none', borderRadius: '10px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
                   <Plus size={18} /> Nueva Carta
                 </button>
 
@@ -943,8 +943,8 @@ const Admin = () => {
                       onClick={() => setEditingCard(card.id)}
                       style={{
                         padding: '1rem',
-                        background: editingCard === card.id ? 'rgba(59,130,246,0.15)' : 'var(--glass-bg)',
-                        border: `1px solid ${editingCard === card.id ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
+                        background: editingCard === card.id ? 'rgba(245,158,11,0.15)' : 'var(--glass-bg)',
+                        border: `1px solid ${editingCard === card.id ? 'var(--accent-gold)' : 'var(--glass-border)'}`,
                         borderRadius: '10px',
                         cursor: 'pointer',
                         display: 'flex',
@@ -952,7 +952,7 @@ const Admin = () => {
                         alignItems: 'center',
                         transition: 'all 0.2s',
                       }}
-                      onMouseEnter={e => { if (editingCard !== card.id) e.currentTarget.style.borderColor = 'var(--accent-primary)'; }}
+                      onMouseEnter={e => { if (editingCard !== card.id) e.currentTarget.style.borderColor = 'var(--accent-gold)'; }}
                       onMouseLeave={e => { if (editingCard !== card.id) e.currentTarget.style.borderColor = 'var(--glass-border)'; }}
                     >
                       <div style={{ width: '60px', height: '84px', borderRadius: '6px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -966,7 +966,7 @@ const Admin = () => {
                         <h5 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.name}</h5>
                         <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{card.game} • {card.set}</p>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '0.7rem', background: card.rarity === 'Common' ? 'rgba(150,150,150,0.2)' : card.rarity === 'Rare' ? 'rgba(59,130,246,0.2)' : card.rarity === 'Ultra Rare' ? 'rgba(234,179,8,0.2)' : 'rgba(168,85,247,0.2)', color: card.rarity === 'Common' ? '#9ca3af' : card.rarity === 'Rare' ? '#3b82f6' : card.rarity === 'Ultra Rare' ? '#eab308' : '#a855f7', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>{card.rarity}</span>
+                          <span style={{ fontSize: '0.7rem', background: card.rarity === 'Common' ? 'rgba(150,150,150,0.2)' : card.rarity === 'Rare' ? 'rgba(245,158,11,0.2)' : card.rarity === 'Ultra Rare' ? 'rgba(234,179,8,0.2)' : 'rgba(168,85,247,0.2)', color: card.rarity === 'Common' ? '#9ca3af' : card.rarity === 'Rare' ? '#f59e0b' : card.rarity === 'Ultra Rare' ? '#eab308' : '#a855f7', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>{card.rarity}</span>
                           <span style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 'bold' }}>${card.price}</span>
                           <span style={{ fontSize: '0.7rem', color: card.stock > 0 ? 'var(--text-secondary)' : '#ef4444' }}>Stock: {card.stock}</span>
                         </div>
@@ -1080,7 +1080,7 @@ const Admin = () => {
                             }
                           }} />
                           <label htmlFor={`card-img-${selectedCard.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 16px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600', transition: 'all 0.2s' }}
-                            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
+                            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-gold)'}
                             onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}
                           >
                             <ImageIcon size={16} /> Subir Imagen
@@ -1128,7 +1128,7 @@ const Admin = () => {
 
         return (
           <div>
-            <h3 style={sectionTitle}><Tag size={20} color="var(--accent-primary)" /> Campañas de Oferta</h3>
+            <h3 style={sectionTitle}><Tag size={20} color="var(--accent-gold)" /> Campañas de Oferta</h3>
             <div style={{ padding: '14px 18px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '10px', marginBottom: '2rem', fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
               <strong style={{ color: 'var(--text-primary)' }}>🎯 Ofertas Temporales:</strong> Crea campañas de descuento para todos los productos o selecciona productos específicos. Controla el % de descuento, fechas, productos y el banner.
             </div>
@@ -1148,7 +1148,7 @@ const Admin = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 450px) 1fr', gap: '2rem', alignItems: 'start' }}>
               {/* Campaigns List */}
               <div>
-                <button onClick={() => setEditingCampaign(createCampaign())} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '10px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
+                <button onClick={() => setEditingCampaign(createCampaign())} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gold)', border: 'none', borderRadius: '10px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
                   <Plus size={18} /> Nueva Campaña
                 </button>
 
@@ -1291,7 +1291,7 @@ const Admin = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
                           <label style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Seleccionar Productos:</label>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button onClick={() => updateCampaign(selectedCampaign.id, 'selectedProducts', allProducts.map(p => p.id))} style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '4px', color: '#3b82f6', cursor: 'pointer' }}>Todos</button>
+                            <button onClick={() => updateCampaign(selectedCampaign.id, 'selectedProducts', allProducts.map(p => p.id))} style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'rgba(245,158,11,0.2)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '4px', color: '#f59e0b', cursor: 'pointer' }}>Todos</button>
                             <button onClick={() => updateCampaign(selectedCampaign.id, 'selectedProducts', [])} style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '4px', color: '#ef4444', cursor: 'pointer' }}>Ninguno</button>
                           </div>
                         </div>
@@ -1349,14 +1349,14 @@ const Admin = () => {
       case 'theme':
         return (
           <div>
-            <h3 style={sectionTitle}><Palette size={20} color="var(--accent-primary)" /> Colores & Tema</h3>
-            <div style={{ padding: '14px 18px', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '10px', marginBottom: '2rem', fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+            <h3 style={sectionTitle}><Palette size={20} color="var(--accent-gold)" /> Colores & Tema</h3>
+            <div style={{ padding: '14px 18px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '10px', marginBottom: '2rem', fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
               🎨 <strong style={{ color: 'var(--text-primary)' }}>Los cambios se aplican en tiempo real.</strong> Ve la página en otra pestaña y verás los colores actualizarse cada vez que selecciones uno. Presiona <strong style={{ color: 'var(--text-primary)' }}>Guardar</strong> cuando estés conforme.
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
               <div>
-                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--accent-primary)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}> Colores de Acento</h4>
+                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', marginBottom: '1.5rem', color: 'var(--accent-gold)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}> Colores de Acento</h4>
                 <ColorPicker label="Color Principal (Accent)" value={theme.accentPrimary} onChange={v => updateTheme('accentPrimary', v)} hint="Botones, links, acentos primarios" />
                 <ColorPicker label="Color Secundario" value={theme.accentSecondary} onChange={v => updateTheme('accentSecondary', v)} hint="Gradientes, hover, detalles" />
               </div>
@@ -1384,14 +1384,14 @@ const Admin = () => {
             {/* Preset Themes */}
             <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--glass-border)' }}>
               <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', marginBottom: '1.2rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-secondary)' }}>Temas Predefinidos</h4>
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                 {[
-                  { name: 'Azul (default)', p: '#3b82f6', s: '#8b5cf6', bg: '#050505' },
-                  { name: '🟢 Esmeralda', p: '#10b981', s: '#06b6d4', bg: '#050a08' },
-                  { name: '🔴 Rojo & Fuego', p: '#ef4444', s: '#f97316', bg: '#080505' },
-                  { name: '🟡 Dorado', p: '#f59e0b', s: '#d97706', bg: '#06050a' },
-                  { name: '🩷 Rosa Neon', p: '#ec4899', s: '#a855f7', bg: '#050508' },
-                  { name: '🤍 Claro', p: '#3b82f6', s: '#8b5cf6', bg: '#f8fafc' },
+                  { name: 'Dorado Oscuro', p: '#f59e0b', s: '#d97706', bg: '#050505' },
+                  { name: 'Dorado Brillante', p: '#fbbf24', s: '#f59e0b', bg: '#070707' },
+                  { name: 'Naranja Tostado', p: '#ea580c', s: '#dc2626', bg: '#080505' },
+                  { name: 'Amber Clásico', p: '#f59e0b', s: '#92400e', bg: '#060402' },
+                  { name: 'Dorado Elegante', p: '#d97706', s: '#b45309', bg: '#050404' },
+                  { name: '🤍 Claro Dorado', p: '#f59e0b', s: '#d97706', bg: '#f8fafc' },
                 ].map(preset => (
                   <button key={preset.name}
                     onClick={() => {
@@ -1422,7 +1422,7 @@ const Admin = () => {
       case 'seo':
         return (
           <div>
-            <h3 style={sectionTitle}><Globe size={20} color="var(--accent-primary)" /> SEO & Metadatos</h3>
+            <h3 style={sectionTitle}><Globe size={20} color="var(--accent-gold)" /> SEO & Metadatos</h3>
             <div style={{ padding: '14px 18px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '10px', marginBottom: '2rem', fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
               🔍 Estos datos aparecen en Google cuando alguien busca tu sitio. Un buen título y descripción aumentan los clicks desde las búsquedas.
             </div>
@@ -1455,7 +1455,7 @@ const Admin = () => {
       case 'general':
         return (
           <div>
-            <h3 style={sectionTitle}><Settings size={20} color="var(--accent-primary)" /> Configuración General</h3>
+            <h3 style={sectionTitle}><Settings size={20} color="var(--accent-gold)" /> Configuración General</h3>
             <Field label="Nombre del Sitio / Logo texto" path="siteName" value={content.siteName} onChange={onChange} />
             <Field label="Tagline / Eslogan" path="tagline" value={content.tagline} onChange={onChange} />
             <Field label="Texto Botón CTA (Navbar)" path="ctaButton" value={content.ctaButton} onChange={onChange} />
@@ -1500,7 +1500,7 @@ const Admin = () => {
       case 'home':
         return (
           <div>
-            <h3 style={sectionTitle}><Monitor size={20} color="var(--accent-primary)" /> Página de Inicio</h3>
+            <h3 style={sectionTitle}><Monitor size={20} color="var(--accent-gold)" /> Página de Inicio</h3>
             <Field label="Badge (texto pequeño arriba del título)" path="home.badge" value={content.home.badge} onChange={onChange} />
             <Field label="Título Principal" path="home.title" value={content.home.title} onChange={onChange} />
             <Field label="Título Acento (con gradiente de color)" path="home.titleAccent" value={content.home.titleAccent} onChange={onChange} />
@@ -1521,7 +1521,7 @@ const Admin = () => {
       case 'about':
         return (
           <div>
-            <h3 style={sectionTitle}><Info size={20} color="var(--accent-primary)" /> Página Nosotros</h3>
+            <h3 style={sectionTitle}><Info size={20} color="var(--accent-gold)" /> Página Nosotros</h3>
             <Field label="Título" path="about.title" value={content.about.title} onChange={onChange} />
             <Field label="Subtítulo" path="about.subtitle" value={content.about.subtitle} onChange={onChange} type="textarea" />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1rem' }}>
@@ -1540,7 +1540,7 @@ const Admin = () => {
       case 'blog':
         return (
           <div>
-            <h3 style={sectionTitle}><FileText size={20} color="var(--accent-primary)" /> Entradas de Blog</h3>
+            <h3 style={sectionTitle}><FileText size={20} color="var(--accent-gold)" /> Entradas de Blog</h3>
 
             {!editPost ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 300px) 1fr', gap: '2rem' }}>
@@ -1555,7 +1555,7 @@ const Admin = () => {
                       <div key={post.id}
                         onClick={() => setEditPost(post.id)}
                         style={{ padding: '12px 14px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '8px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all 0.2s', borderLeft: post.published ? '3px solid #10b981' : '3px solid #f59e0b' }}
-                        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
+                        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-gold)'}
                         onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}
                       >
                         <div style={{ overflow: 'hidden' }}>
@@ -1645,15 +1645,15 @@ const Admin = () => {
       case 'services':
         return (
           <div>
-            <h3 style={sectionTitle}><Zap size={20} color="var(--accent-primary)" /> Editor de Servicios</h3>
+            <h3 style={sectionTitle}><Zap size={20} color="var(--accent-gold)" /> Editor de Servicios</h3>
             <Field label="Título de la sección" path="services.title" value={content.services.title} onChange={onChange} />
             <Field label="Subtítulo" path="services.subtitle" value={content.services.subtitle} onChange={onChange} type="textarea" />
 
             <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {(content.services?.cards || []).map((card, i) => (
-                <div key={i} style={{ padding: '1.5rem', background: `rgba(59,130,246,0.04)`, border: '1px solid var(--glass-border)', borderRadius: '12px', borderLeft: '4px solid var(--accent-primary)' }}>
+                <div key={i} style={{ padding: '1.5rem', background: `rgba(245,158,11,0.04)`, border: '1px solid var(--glass-border)', borderRadius: '12px', borderLeft: '4px solid var(--accent-gold)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <span style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', color: 'var(--accent-primary)', fontSize: '0.85rem' }}>SERVICIO #{i + 1}</span>
+                    <span style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', color: 'var(--accent-gold)', fontSize: '0.85rem' }}>SERVICIO #{i + 1}</span>
                     <div style={{ display: 'flex', gap: '4px' }}>
                       <button onClick={() => moveServiceCard(i, 'up')} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', padding: '4px', borderRadius: '4px', cursor: 'pointer' }}><ArrowUp size={14} /></button>
                       <button onClick={() => moveServiceCard(i, 'down')} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', padding: '4px', borderRadius: '4px', cursor: 'pointer' }}><ArrowDown size={14} /></button>
@@ -1678,7 +1678,7 @@ const Admin = () => {
       case 'contact':
         return (
           <div>
-            <h3 style={sectionTitle}><Mail size={20} color="var(--accent-primary)" /> Página Contacto</h3>
+            <h3 style={sectionTitle}><Mail size={20} color="var(--accent-gold)" /> Página Contacto</h3>
             <Field label="Título" path="contact.title" value={content.contact.title} onChange={onChange} />
             <Field label="Subtítulo" path="contact.subtitle" value={content.contact.subtitle} onChange={onChange} type="textarea" />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -1696,7 +1696,7 @@ const Admin = () => {
       case 'social':
         return (
           <div>
-            <h3 style={sectionTitle}><Globe size={20} color="var(--accent-primary)" /> Redes Sociales</h3>
+            <h3 style={sectionTitle}><Globe size={20} color="var(--accent-gold)" /> Redes Sociales</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2rem' }}>Estas URLs se usan en el Navbar, Footer y cualquier lugar donde aparezcan íconos de redes sociales.</p>
             {[
               { label: '📸 Instagram', path: 'social.instagram', placeholder: 'https://instagram.com/tuusuario' },
@@ -1731,7 +1731,7 @@ const Admin = () => {
       case 'footer':
         return (
           <div>
-            <h3 style={sectionTitle}><FileText size={20} color="var(--accent-primary)" /> Footer</h3>
+            <h3 style={sectionTitle}><FileText size={20} color="var(--accent-gold)" /> Footer</h3>
             <Field label="Descripción de la empresa" path="footer.description" value={content.footer.description} onChange={onChange} type="textarea" />
             <Field label="Texto de Copyright" path="footer.copyright" value={content.footer.copyright} onChange={onChange} hint={`Ej: MiEmpresa. Todos los derechos reservados.`} />
           </div>
@@ -1740,8 +1740,8 @@ const Admin = () => {
       case 'images':
         return (
           <div>
-            <h3 style={sectionTitle}><ImageIcon size={20} color="var(--accent-primary)" /> Gestión de Imágenes</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '2rem', padding: '12px 16px', background: 'rgba(59,130,246,0.07)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '8px', lineHeight: '1.6' }}>
+            <h3 style={sectionTitle}><ImageIcon size={20} color="var(--accent-gold)" /> Gestión de Imágenes</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '2rem', padding: '12px 16px', background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '8px', lineHeight: '1.6' }}>
               💡 Las imágenes se guardan en tu navegador como base64. <strong style={{ color: 'var(--text-primary)' }}>Máximo 2 MB por imagen.</strong> Para imágenes más grandes, considera almacenamiento en la nube.
             </p>
             <ImageUploader label="Logo / Imagen de Marca" description="PNG transparente recomendado — 200×60 px" value={images.logo} onChange={val => updateImage('logo', val)} />
@@ -1763,7 +1763,7 @@ const Admin = () => {
         return (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-              <h3 style={sectionTitle}><Mail size={20} color="var(--accent-primary)" /> Bandeja de Entrada</h3>
+              <h3 style={sectionTitle}><Mail size={20} color="var(--accent-gold)" /> Bandeja de Entrada</h3>
               {unreadCount > 0 && (
                 <span style={{ background: '#ef4444', color: 'var(--text-primary)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold' }}>
                   {unreadCount} sin leer
@@ -1779,8 +1779,8 @@ const Admin = () => {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {inbox.map(msg => (
-                  <div key={msg.id} style={{ padding: '1.5rem', background: 'var(--glass-bg)', border: `1px solid ${msg.read ? 'var(--glass-border)' : 'var(--accent-primary)'}`, borderRadius: '12px', position: 'relative' }}>
-                    {!msg.read && <div style={{ position: 'absolute', top: '15px', right: '15px', width: '10px', height: '10px', background: 'var(--accent-primary)', borderRadius: '50%', boxShadow: '0 0 10px var(--accent-primary)' }} />}
+                  <div key={msg.id} style={{ padding: '1.5rem', background: 'var(--glass-bg)', border: `1px solid ${msg.read ? 'var(--glass-border)' : 'var(--accent-gold)'}`, borderRadius: '12px', position: 'relative' }}>
+                    {!msg.read && <div style={{ position: 'absolute', top: '15px', right: '15px', width: '10px', height: '10px', background: 'var(--accent-gold)', borderRadius: '50%', boxShadow: '0 0 10px var(--accent-gold)' }} />}
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
                       <div>
                         <h4 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.2rem' }}>{msg.name}</h4>
@@ -1788,7 +1788,7 @@ const Admin = () => {
                       </div>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         {!msg.read && (
-                          <button onClick={() => markMessageRead(msg.id)} style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', padding: '6px 12px', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer' }}>Marcar Leído</button>
+                          <button onClick={() => markMessageRead(msg.id)} style={{ background: 'transparent', border: '1px solid var(--accent-gold)', color: 'var(--accent-gold)', padding: '6px 12px', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer' }}>Marcar Leído</button>
                         )}
                         <button onClick={() => { if(confirm('¿Eliminar mensaje de manera permanente?')) deleteMessage(msg.id); }} style={{ background: 'transparent', border: '1px solid #ef444455', color: '#ef4444', padding: '6px 12px', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer' }}><Trash2 size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Eliminar</button>
                       </div>
@@ -1811,7 +1811,7 @@ const Admin = () => {
       {/* ── Sidebar ─────────────────────────── */}
       <aside style={{ width: '230px', background: 'var(--bg-secondary)', borderRight: '1px solid var(--glass-border)', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 'var(--nav-height)', height: 'calc(100vh - var(--nav-height))', overflowY: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '2rem', padding: '0 0.3rem' }}>
-          <div style={{ width: '30px', height: '30px', background: 'var(--accent-gradient)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: '30px', height: '30px', background: 'var(--accent-gold)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Settings size={16} color="white" />
           </div>
           <span style={{ fontFamily: 'var(--font-heading)', fontWeight: '800', fontSize: '1rem' }}>CMS Panel</span>
@@ -1823,12 +1823,12 @@ const Admin = () => {
           {sections.map(s => (
             <li key={s.id} onClick={() => setActive(s.id)} style={{
               padding: '9px 12px', borderRadius: '7px',
-              background: active === s.id ? 'rgba(59,130,246,0.15)' : 'transparent',
-              color: active === s.id ? 'var(--accent-primary)' : 'var(--text-secondary)',
+              background: active === s.id ? 'rgba(245,158,11,0.15)' : 'transparent',
+              color: active === s.id ? 'var(--accent-gold)' : 'var(--text-secondary)',
               fontWeight: active === s.id ? '700' : '500',
               fontSize: '0.88rem',
               display: 'flex', alignItems: 'center', gap: '9px', cursor: 'pointer',
-              border: active === s.id ? '1px solid rgba(59,130,246,0.3)' : '1px solid transparent',
+              border: active === s.id ? '1px solid rgba(245,158,11,0.3)' : '1px solid transparent',
               fontFamily: 'var(--font-heading)', transition: 'all 0.15s',
             }}
               onMouseEnter={e => { if (active !== s.id) e.currentTarget.style.color = 'white'; }}
@@ -1841,7 +1841,7 @@ const Admin = () => {
 
         <div style={{ padding: '0.9rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-gradient)', flexShrink: 0 }}></div>
+            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-gold)', flexShrink: 0 }}></div>
             <div>
               <p style={{ fontSize: '0.82rem', fontWeight: '700', fontFamily: 'var(--font-heading)' }}>Admin</p>
               <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Conectado</p>
@@ -1865,7 +1865,7 @@ const Admin = () => {
               <p style={{ color: 'var(--text-secondary)', marginTop: '0.2rem', fontSize: '0.9rem' }}>Edita cualquier cosa → Guarda → Los cambios persisten.</p>
             </div>
             <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <button onClick={() => setSplitView(!splitView)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: splitView ? 'var(--accent-primary)' : 'transparent', border: '1px solid var(--glass-border)', borderRadius: '8px', color: splitView ? 'white' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-heading)', fontWeight: '600' }}>
+              <button onClick={() => setSplitView(!splitView)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: splitView ? 'var(--accent-gold)' : 'transparent', border: '1px solid var(--glass-border)', borderRadius: '8px', color: splitView ? 'white' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-heading)', fontWeight: '600' }}>
                 <Columns size={15} /> {splitView ? 'Cerrar Vista Previa' : 'Vista Dividida'}
               </button>
               <button onClick={resetContent} title="Restablecer todo" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'transparent', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-heading)', fontWeight: '600' }}>
@@ -1874,7 +1874,7 @@ const Admin = () => {
               <a href="/" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'transparent', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-heading)', fontWeight: '600', textDecoration: 'none' }}>
                 <Eye size={15} /> Ver Sitio
               </a>
-              <button onClick={() => { saveContent(); toast.success('Cambios guardados correctamente'); }} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 20px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontFamily: 'var(--font-heading)', fontWeight: '700', boxShadow: '0 4px 14px var(--accent-glow)' }}>
+              <button onClick={() => { saveContent(); toast.success('Cambios guardados correctamente'); }} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 20px', background: 'var(--accent-gold)', border: 'none', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontFamily: 'var(--font-heading)', fontWeight: '700', boxShadow: '0 4px 14px var(--accent-glow)' }}>
                 <Save size={17} /> Guardar
               </button>
             </div>

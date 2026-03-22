@@ -12,7 +12,7 @@
   --accent-primary: #3b82f6; /* Brilliant Blue */
   --accent-secondary: #8b5cf6; /* Vibrant Purple */
   --accent-gold: #f59e0b; /* Golden Accent - Sobrescrito por tema del admin */
-  --accent-gradient: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  --accent-gradient: linear-gradient(135deg, var(--accent-gold), var(--accent-secondary));
   --accent-glow: rgba(59, 130, 246, 0.4);
   
   --glass-bg: rgba(255, 255, 255, 0.03);
@@ -78,7 +78,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .text-gradient {
-  background: var(--accent-gradient);
+  background: var(--accent-gold);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -184,7 +184,7 @@ main {
 
 .user-icon-btn:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: var(--accent-primary);
+  border-color: var(--accent-gold);
 }
 
 .nav-menu {
@@ -215,7 +215,7 @@ main {
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--accent-gradient);
+  background: var(--accent-gold);
   transition: width var(--transition-bounce);
   border-radius: 2px;
 }
@@ -290,7 +290,7 @@ main {
 }
 
 .nav-user-link:hover {
-  border-color: var(--accent-primary);
+  border-color: var(--accent-gold);
   background: rgba(255, 255, 255, 0.06);
 }
 
@@ -321,7 +321,7 @@ main {
 }
 
 .user-dropdown-trigger:hover {
-  border-color: var(--accent-primary);
+  border-color: var(--accent-gold);
 }
 
 .user-dropdown-menu {
@@ -449,7 +449,7 @@ main {
 
 .nav-login-btn:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: var(--accent-primary);
+  border-color: var(--accent-gold);
   color: white;
 }
 
@@ -481,7 +481,7 @@ main {
   justify-content: center;
   gap: 0.75rem;
   padding: 14px 36px;
-  background: var(--accent-gradient);
+  background: var(--accent-gold);
   color: #fff;
   font-family: var(--font-heading);
   font-weight: 600;
@@ -500,7 +500,7 @@ main {
   content: '';
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+  background: linear-gradient(135deg, var(--accent-secondary), var(--accent-gold));
   opacity: 0;
   transition: opacity var(--transition-normal);
   z-index: -1;
@@ -608,7 +608,7 @@ main {
 }
 
 .footer-section li a:hover {
-  color: var(--accent-primary);
+  color: var(--accent-gold);
 }
 
 .footer-bottom {
@@ -683,7 +683,7 @@ main {
   left: -10%;
   width: 500px;
   height: 500px;
-  background: var(--accent-primary);
+  background: var(--accent-gold);
   filter: blur(150px);
   opacity: 0.15;
   border-radius: 50%;
@@ -735,7 +735,7 @@ main {
   border-radius: 50px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  color: var(--accent-primary);
+  color: var(--accent-gold);
   font-size: 0.9rem;
   font-weight: 600;
   margin-bottom: 2rem;
@@ -821,7 +821,7 @@ main {
   height: 40px;
   border: 3px solid rgba(255, 255, 255, 0.1);
   border-radius: 50%;
-  border-top-color: var(--accent-primary);
+  border-top-color: var(--accent-gold);
   animation: spin 1s ease-in-out infinite;
   text-indent: -9999px; /* Hide the text "Cargando..." */
 }
@@ -1789,7 +1789,7 @@ main {
 .login-icon {
   width: 72px;
   height: 72px;
-  background: var(--accent-gradient);
+  background: var(--accent-gold);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1844,7 +1844,7 @@ main {
 
 .form-group input:focus {
   outline: none;
-  border-color: var(--accent-primary);
+  border-color: var(--accent-gold);
 }
 
 .form-group input.input-error {
@@ -2419,7 +2419,7 @@ main {
 }
 
 .order-more-items {
-  color: var(--accent-primary);
+  color: var(--accent-gold);
   font-size: 0.8rem;
   font-weight: 500;
 }
@@ -2487,7 +2487,7 @@ main {
 
 .search-form .form-group input:focus {
   outline: none;
-  border-color: var(--accent-primary);
+  border-color: var(--accent-gold);
 }
 
 .search-form button {
@@ -2522,7 +2522,7 @@ main {
 }
 
 .no-results a {
-  color: var(--accent-primary);
+  color: var(--accent-gold);
   text-decoration: underline;
 }
 
@@ -2565,7 +2565,7 @@ main {
 
 .progress-fill {
   height: 100%;
-  background: var(--accent-gradient);
+  background: var(--accent-gold);
   border-radius: 3px;
   transition: width 0.5s ease;
 }
@@ -2591,7 +2591,7 @@ main {
 
 .progress-step.done .step-dot,
 .progress-step.current .step-dot {
-  background: var(--accent-primary);
+  background: var(--accent-gold);
 }
 
 .progress-step.current .step-dot {
@@ -3448,7 +3448,7 @@ main {
   position: absolute;
   bottom: 8px;
   left: 8px;
-  background: var(--rarity-color, var(--accent-primary));
+  background: var(--rarity-color, var(--accent-gold));
   color: white;
   padding: 2px 8px;
   border-radius: 4px;
@@ -4033,7 +4033,7 @@ main {
 }
 
 .badge-default {
-  background: var(--accent-primary);
+  background: var(--accent-gold);
   color: white;
   padding: 6px 12px;
   border-radius: 6px;
@@ -4190,7 +4190,7 @@ main {
 
 .quantity-selector button:hover {
   background: var(--glass-bg);
-  border-color: var(--accent-primary);
+  border-color: var(--accent-gold);
 }
 
 .quantity-selector span {
@@ -4475,8 +4475,8 @@ main {
 
 .cart-button:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
 }
 
 .cart-button-badge {

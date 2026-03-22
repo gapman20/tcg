@@ -144,6 +144,7 @@ const defaultTheme = {
   textNavbarSecondary: '#a1a1aa',
   textCardPrimary:     '#ffffff',
   textCardSecondary:   '#a1a1aa',
+  newsletterBg:    'linear-gradient(135deg, #f59e0b, #d97706)',
 };
 
 const defaultImages = {
@@ -217,6 +218,7 @@ function applyTheme(theme) {
   root.style.setProperty('--text-navbar-secondary', theme.textNavbarSecondary || theme.textSecondary);
   root.style.setProperty('--text-card-primary',     theme.textCardPrimary || theme.textPrimary);
   root.style.setProperty('--text-card-secondary',   theme.textCardSecondary || theme.textSecondary);
+  root.style.setProperty('--newsletter-bg',         theme.newsletterBg || 'linear-gradient(135deg, #f59e0b, #d97706)');
 
   const navColor = theme.navbarColor || theme.bgSecondary;
   root.style.setProperty('--nav-bg',      navColor + 'e6');

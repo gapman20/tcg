@@ -1403,7 +1403,7 @@ main {
 /* Newsletter Section */
 .newsletter-section {
   padding: 5rem 0;
-  background: linear-gradient(135deg, var(--accent-gold), #d97706);
+  background: var(--newsletter-bg);
 }
 
 .newsletter-content {

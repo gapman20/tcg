@@ -1379,6 +1379,12 @@ const Admin = () => {
                 <ColorPicker label="Texto Cards (Principal)" value={theme.textCardPrimary || theme.textPrimary} onChange={v => updateTheme('textCardPrimary', v)} hint="Títulos dentro de las tarjetas Glass" />
                 <ColorPicker label="Texto Cards (Secundario)" value={theme.textCardSecondary || theme.textSecondary} onChange={v => updateTheme('textCardSecondary', v)} hint="Descripciones dentro de las tarjetas" />
               </div>
+              
+              {/* Newsletter Color */}
+              <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '12px' }}>
+                <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', marginBottom: '1rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent-gold)' }}>Newsletter (Suscripciones)</h4>
+                <ColorPicker label="Color del Newsletter" value={theme.accentPrimary} onChange={v => updateTheme('newsletterBg', `linear-gradient(135deg, ${v}, ${theme.accentSecondary || v})`)} hint="Fondo de la sección de suscripciones" />
+              </div>
             </div>
 
             {/* Preset Themes */}

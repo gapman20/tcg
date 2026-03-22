@@ -71,13 +71,13 @@ const Navbar = () => {
             <li key={link.path}>
               <Link 
                 to={link.path} 
-                className="nav-links" 
+                className={`nav-links nav-links-favorites-badge ${link.path === '/mis-deseos' && itemCount > 0 ? 'nav-links-favorites' : ''}`} 
                 onClick={() => setIsOpen(false)}
               >
-                {link.path === '/mis-deseos' && itemCount > 0 && (
-                  <span className="nav-badge">{itemCount}</span>
-                )}
                 {link.name}
+                {link.path === '/mis-deseos' && itemCount > 0 && (
+                  <span className="favorites-badge">{itemCount}</span>
+                )}
               </Link>
             </li>
           ))}

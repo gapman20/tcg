@@ -234,6 +234,35 @@ main {
   font-weight: 600;
 }
 
+.nav-links-favorites {
+  color: var(--accent-gold);
+}
+
+.nav-links-favorites:hover {
+  color: var(--accent-gold);
+}
+
+.nav-links-favorites-badge {
+  position: relative;
+}
+
+.favorites-badge {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  background: var(--accent-gold);
+  color: #000;
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 0 4px;
+}
+
 .nav-actions-mobile {
   display: none;
 }

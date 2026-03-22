@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, SlidersHorizontal, X, Grid, List, Filter } from 'lucide-react';
+import { Search, SlidersHorizontal, X, Grid, List, Filter, Heart, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useToast } from '../components/Toast';
 import SEO from '../components/SEO';
 
 const CARDS_KEY = 'tcg_cards';
@@ -85,20 +87,34 @@ const RARITY_COLORS = {
 
 const SingleCard = ({ card, onAddToCart }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const { isInWishlist, toggleItem } = useWishlist();
+  const toast = useToast();
   
   const rarityColor = RARITY_COLORS[card.rarity] || '#9ca3af';
+  const wishlisted = isInWishlist(card.id);
+  
+  const handleToggleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const wasAdded = toggleItem(card);
+    if (wasAdded) {
+      toast.success(`${card.name} añadido a favoritos`);
+    } else {
+      toast.info(`${card.name} eliminado de favoritos`);
+    }
+  };
   
   return (
     <div 
-      className="single-card"
+      className="tcg-product-card"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="single-card-image">
+      <div className="product-image-container">
         {card.image ? (
-          <img src={card.image} alt={card.name} />
+          <img src={card.image} alt={card.name} className="product-image" />
         ) : (
-          <div className="single-card-placeholder">
+          <div className="product-placeholder">
             <span>{GAMES.find(g => g.id === card.game)?.icon || '🎴'}</span>
           </div>
         )}
@@ -108,30 +124,44 @@ const SingleCard = ({ card, onAddToCart }) => {
         </div>
         
         {card.badge && (
-          <span className="single-card-badge">{card.badge}</span>
+          <span className="product-badge badge-nuevo">{card.badge}</span>
         )}
         
+        <div className={`product-actions ${isHovered || window.innerWidth < 768 ? 'visible' : ''}`}>
+          <button 
+            className="action-btn wishlist-btn"
+            onClick={handleToggleWishlist}
+          >
+            <Heart size={20} fill={wishlisted ? 'var(--accent-gold)' : 'none'} color={wishlisted ? 'var(--accent-gold)' : 'currentColor'} />
+          </button>
+          <button className="action-btn cart-btn" onClick={() => onAddToCart(card)}>
+            <ShoppingCart size={20} />
+          </button>
+        </div>
+        
         {card.stock === 0 && (
-          <div className="single-card-soldout">Agotado</div>
+          <div className="product-soldout-overlay">
+            <span>Agotado</span>
+          </div>
         )}
       </div>
       
-      <div className="single-card-info">
-        <span className="single-card-game">{card.game}</span>
-        <h3 className="single-card-name">
-          <Link to={`/producto/${card.id}`}>{card.name}</Link>
-        </h3>
-        <p className="single-card-set">{card.set}</p>
-        <div className="single-card-footer">
-          <span className="single-card-price">{card.priceDisplay}</span>
-          <button 
-            className="single-card-btn"
-            onClick={() => onAddToCart(card)}
-            disabled={card.stock === 0}
-          >
-            {card.stock === 0 ? 'Agotado' : '+'}
-          </button>
+      <div className="product-info">
+        <div className="product-tags">
+          <span className="product-tag">{card.game}</span>
+          <span className="product-tag">{card.set}</span>
         </div>
+        <h3 className="product-name">{card.name}</h3>
+        <div className="product-price">
+          <span className="price-current">{card.priceDisplay}</span>
+        </div>
+        <button 
+          className="add-to-cart-btn"
+          onClick={() => onAddToCart(card)}
+          disabled={card.stock === 0}
+        >
+          {card.stock === 0 ? 'Agotado' : 'Agregar al carrito'}
+        </button>
       </div>
     </div>
   );

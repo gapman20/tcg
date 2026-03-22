@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Package, ShoppingCart, Heart, Search, SlidersHorizontal, X, Grid, List } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useToast } from '../components/Toast';
 import SEO from '../components/SEO';
 
 const SELLADOS_KEY = 'tcg_sellados';
@@ -70,68 +72,86 @@ const sampleSealedProducts = [
 ];
 
 const SealedProductCard = ({ product, onAddToCart }) => {
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const { isInWishlist, toggleItem } = useWishlist();
+  const toast = useToast();
   
   const hasDiscount = product.discountPercent > 0;
   const badgeClass = product.badge ? product.badge.toLowerCase().replace(/[^a-z]/g, '') : '';
+  const wishlisted = isInWishlist(product.id);
+  
+  const handleToggleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const wasAdded = toggleItem(product);
+    if (wasAdded) {
+      toast.success(`${product.name} añadido a favoritos`);
+    } else {
+      toast.info(`${product.name} eliminado de favoritos`);
+    }
+  };
   
   return (
     <div 
-      className={`catalog-product-card ${hasDiscount ? 'has-discount' : ''}`}
+      className="tcg-product-card"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="catalog-product-image">
+      <div className="product-image-container">
         {product.image ? (
-          <img src={product.image} alt={product.name} />
+          <img src={product.image} alt={product.name} className="product-image" />
         ) : (
-          <div className="catalog-product-placeholder">
-            <span>{GAMES.find(g => g.id === product.game)?.icon || '📦'}</span>
+          <div className="product-placeholder">
+            <Package size={48} color="var(--text-secondary)" />
           </div>
         )}
         
         {product.badge && (
-          <span className={`catalog-badge badge-${badgeClass}`}>
+          <span className={`product-badge badge-${badgeClass}`}>
             {product.badge}
           </span>
         )}
         
         {hasDiscount && (
-          <span className="catalog-badge badge-oferta">
+          <span className="product-badge badge-oferta">
             -{product.discountPercent}% OFF
           </span>
         )}
         
-        <div className="product-actions visible">
+        <div className={`product-actions ${isHovered || window.innerWidth < 768 ? 'visible' : ''}`}>
           <button 
             className="action-btn wishlist-btn"
-            onClick={() => setIsWishlisted(!isWishlisted)}
+            onClick={handleToggleWishlist}
           >
-            <Heart size={20} fill={isWishlisted ? 'var(--accent-primary)' : 'none'} />
+            <Heart size={20} fill={wishlisted ? 'var(--accent-gold)' : 'none'} color={wishlisted ? 'var(--accent-gold)' : 'currentColor'} />
+          </button>
+          <button className="action-btn cart-btn" onClick={() => onAddToCart(product)}>
+            <ShoppingCart size={20} />
           </button>
         </div>
         
         {product.stock === 0 && (
-          <div className="catalog-soldout">Agotado</div>
+          <div className="product-soldout-overlay">
+            <span>Agotado</span>
+          </div>
         )}
       </div>
       
-      <div className="catalog-product-info">
-        <div className="catalog-product-meta">
-          <span className="catalog-game-tag">{product.game}</span>
-          <span className="catalog-set-tag">{product.type.replace(/-/g, ' ')}</span>
+      <div className="product-info">
+        <div className="product-tags">
+          {product.game && <span className="product-tag">{product.game}</span>}
+          {product.set && <span className="product-tag">{product.type.replace(/-/g, ' ')}</span>}
         </div>
-        <h3 className="catalog-product-name">
-          <Link to={`/producto/${product.id}`}>{product.name}</Link>
-        </h3>
-        <p className="catalog-product-set">{product.set}</p>
-        <div className="catalog-product-price">
-          <span className="catalog-price-current">{product.priceDisplay}</span>
+        <h3 className="product-name">{product.name}</h3>
+        <div className="product-price">
+          <span className="price-current">{product.priceDisplay}</span>
         </div>
         <button 
-          className="catalog-add-btn"
+          className="add-to-cart-btn"
           onClick={() => onAddToCart(product)}
           disabled={product.stock === 0}
         >
-          {product.stock === 0 ? 'Agotado' : 'Agregar'}
+          {product.stock === 0 ? 'Agotado' : 'Agregar al carrito'}
         </button>
       </div>
     </div>

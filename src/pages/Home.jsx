@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { useSite } from '../context/SiteContext';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useToast } from '../components/Toast';
 import SEO from '../components/SEO';
 
 const formatPrice = (value) => {
@@ -28,10 +30,23 @@ const GameCard = ({ name, icon, color }) => (
 
 const ProductCard = ({ product, onAddToCart }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const { isInWishlist, toggleItem } = useWishlist();
+  const toast = useToast();
   
   const hasDiscount = product.originalPrice && product.originalPrice !== product.price;
   const badgeClass = product.badge ? product.badge.toLowerCase().replace(/[^a-z]/g, '') : '';
+  const wishlisted = isInWishlist(product.id);
+  
+  const handleToggleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const wasAdded = toggleItem(product);
+    if (wasAdded) {
+      toast.success(`${product.name} añadido a favoritos`);
+    } else {
+      toast.info(`${product.name} eliminado de favoritos`);
+    }
+  };
   
   return (
     <div 
@@ -63,9 +78,9 @@ const ProductCard = ({ product, onAddToCart }) => {
         <div className={`product-actions ${isHovered || window.innerWidth < 768 ? 'visible' : ''}`}>
           <button 
             className="action-btn wishlist-btn"
-            onClick={() => setIsWishlisted(!isWishlisted)}
+            onClick={handleToggleWishlist}
           >
-            <Heart size={20} fill={isWishlisted ? 'var(--accent-primary)' : 'none'} />
+            <Heart size={20} fill={wishlisted ? 'var(--accent-gold)' : 'none'} color={wishlisted ? 'var(--accent-gold)' : 'currentColor'} />
           </button>
           <button className="action-btn cart-btn" onClick={() => onAddToCart(product)}>
             <ShoppingCart size={20} />

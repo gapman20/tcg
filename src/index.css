@@ -3561,6 +3561,33 @@ main {
 .badge-oferta { background: #ef4444; color: white; }
 .badge-agotado { background: #6b7280; color: white; }
 
+.sealed-wishlist-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.7);
+  border: 2px solid rgba(255,255,255,0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: all 0.2s;
+}
+
+.sealed-wishlist-btn:hover {
+  transform: scale(1.1);
+  border-color: var(--accent-gold);
+  background: rgba(0,0,0,0.8);
+}
+
+.sealed-wishlist-btn.active {
+  border-color: var(--accent-gold);
+}
+
 .catalog-soldout {
   position: absolute;
   inset: 0;
@@ -3827,6 +3854,36 @@ main {
   text-transform: uppercase;
   background: var(--accent-gold);
   color: #000;
+}
+
+.single-card-wishlist {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.single-card:hover .single-card-wishlist {
+  opacity: 1;
+}
+
+.single-card-wishlist:hover {
+  transform: scale(1.1);
+}
+
+.single-card-wishlist.active {
+  opacity: 1;
 }
 
 .single-card-soldout {

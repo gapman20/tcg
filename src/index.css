@@ -224,6 +224,14 @@ main {
   width: 100%;
 }
 
+.nav-links.active {
+  color: var(--text-navbar-primary, var(--text-primary));
+}
+
+.nav-links.active::after {
+  width: 100%;
+}
+
 .nav-badge {
   background: #ef4444;
   color: white;

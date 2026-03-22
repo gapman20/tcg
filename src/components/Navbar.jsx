@@ -71,7 +71,7 @@ const Navbar = () => {
             <li key={link.path}>
               <Link 
                 to={link.path} 
-                className={`nav-links nav-links-favorites-badge ${link.path === '/mis-deseos' && itemCount > 0 ? 'nav-links-favorites' : ''}`} 
+                className={`nav-links ${location.pathname === link.path ? 'active' : ''}`} 
                 onClick={() => setIsOpen(false)}
               >
                 {link.name}

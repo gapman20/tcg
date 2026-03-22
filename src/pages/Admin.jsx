@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSite } from '../context/SiteContext';
 import { useToast } from '../components/Toast';
 import ImageUploader from '../components/ImageUploader';
+import scryfallApi from '../services/scryfallApi';
+import pokemonTcgApi, { formatPokemonCard } from '../services/pokemonTcgApi';
 import {
   LayoutDashboard, FileText, Settings, Mail, Info,
   Save, RotateCcw, CheckCircle, AlertCircle, Eye,
@@ -9,7 +11,7 @@ import {
   MessageSquare, Zap, Users, TrendingUp, Monitor,
   ToggleLeft, ToggleRight, RefreshCw, Plus, Trash2, Package,
   Columns, ArrowUp, ArrowDown, Bold, List, BarChart, Lock,
-  Gamepad2, Layers, Tag, Calendar, Percent
+  Gamepad2, Layers, Tag, Calendar, Percent, Search
 } from 'lucide-react';
 
 // ─── Shared input style ───────────────────────────────────────────────────────
@@ -199,6 +201,88 @@ const Admin = () => {
 
   // Campaigns state
   const [editingCampaign, setEditingCampaign] = useState(null);
+
+  // Scryfall search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [selectedGame, setSelectedGame] = useState('magic');
+
+  const handleCardSearch = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setSearching(true);
+    setSearchResults([]);
+    
+    try {
+      if (selectedGame === 'pokemon') {
+        const result = await pokemonTcgApi.searchCards(searchQuery, { limit: 20 });
+        if (result.data) {
+          setSearchResults(result.data);
+        } else {
+          setSearchResults([]);
+        }
+      } else {
+        const query = `${searchQuery} game:${selectedGame}`;
+        const result = await scryfallApi.searchCards(query, { limit: 20 });
+        if (result.data) {
+          setSearchResults(result.data);
+        } else if (result.Results) {
+          setSearchResults(result.Results);
+        } else {
+          setSearchResults([]);
+        }
+      }
+    } catch (error) {
+      console.error('Card search error:', error);
+      toast.error('Error al buscar cartas');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const importCard = (card) => {
+    let newCard;
+    
+    if (selectedGame === 'pokemon') {
+      const formatted = formatPokemonCard(card);
+      newCard = {
+        ...formatted,
+        id: `card-${Date.now()}`,
+        price: typeof formatted.price === 'number' ? formatted.price : parseFloat(formatted.price) || 0,
+        imageUrl: formatted.image,
+      };
+    } else {
+      const price = card.prices?.usd ? parseFloat(card.prices.usd) : 0;
+      const priceFoil = card.prices?.usd_foil ? parseFloat(card.prices.usd_foil) : null;
+      newCard = {
+        id: `card-${Date.now()}`,
+        name: card.name,
+        game: selectedGame.charAt(0).toUpperCase() + selectedGame.slice(1),
+        set: card.set_name,
+        rarity: card.rarity?.replace(/^\w/, c => c.toUpperCase()) || 'Rare',
+        price: price,
+        priceFoil: priceFoil,
+        stock: 1,
+        active: true,
+        description: card.oracle_text || '',
+        imageUrl: card.image_uris?.normal || card.image_uris?.small || card.card_faces?.[0]?.image_uris?.normal || null,
+        condition: 'NM',
+        scryfallId: card.id,
+      };
+    }
+    
+    setCards(prev => {
+      const updated = [newCard, ...prev];
+      saveCardsToStorage(updated);
+      return updated;
+    });
+    
+    setEditingCard(newCard.id);
+    setSearchResults([]);
+    setSearchQuery('');
+    toast.success(`"${card.name}" importada`);
+  };
 
   const onChange = (path, val) => updateContent(path, val);
 
@@ -930,11 +1014,87 @@ const Admin = () => {
             <h3 style={sectionTitle}><Layers size={20} color="var(--accent-gold)" /> Cartas Sueltas</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2rem' }}>Gestiona cartas individuales: Holos, Raras, Ultra Rares, Full Arts y más.</p>
             
+            {/* Scryfall Search */}
+            <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '12px' }}>
+              <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: '700', fontSize: '0.9rem', marginBottom: '1rem', color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Search size={16} /> Buscar en Scryfall (Precios en USD)
+              </h4>
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                <select 
+                  value={selectedGame} 
+                  onChange={e => setSelectedGame(e.target.value)}
+                  style={{ ...inputSt, width: 'auto', minWidth: '120px', padding: '8px 12px' }}
+                >
+                  <option value="magic">Magic</option>
+                  <option value="pokemon">Pokémon</option>
+                  <option value="yugioh">Yu-Gi-Oh!</option>
+                </select>
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleCardSearch()}
+                  placeholder={selectedGame === 'pokemon' ? "Buscar carta... (ej: Charizard)" : "Buscar carta... (ej: Black Lotus)"}
+                  style={{ ...inputSt, flex: 1 }}
+                />
+                <button 
+                  onClick={handleCardSearch}
+                  disabled={searching}
+                  style={{ padding: '8px 16px', background: 'var(--accent-gold)', border: 'none', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  {searching ? <RefreshCw size={16} className="spin" /> : <Search size={16} />}
+                  Buscar
+                </button>
+              </div>
+              
+              {/* Search Results */}
+              {searchResults.length > 0 && (
+                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.8rem' }}>
+                    {searchResults.length} resultado(s) encontrado(s)
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {searchResults.slice(0, 10).map(card => (
+                      <div key={card.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0.75rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>
+                        <div style={{ width: '50px', height: '70px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, background: 'rgba(255,255,255,0.05)' }}>
+                          {card.image_uris?.small ? (
+                            <img src={card.image_uris.small} alt={card.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <Layers size={20} color="var(--glass-border)" style={{ margin: '25px auto', display: 'block' }} />
+                          )}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.name}</p>
+                          <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{card.set_name} • {card.rarity}</p>
+                          <p style={{ fontSize: '0.8rem', fontWeight: '700', color: '#10b981' }}>
+                            ${card.prices?.usd || '0.00'}
+                            {card.prices?.usd_foil && <span style={{ color: 'var(--text-secondary)', fontWeight: '400' }}> / foil: ${card.prices.usd_foil}</span>}
+                          </p>
+                        </div>
+                        <button 
+                          onClick={() => importCard(card)}
+                          style={{ padding: '6px 12px', background: 'var(--accent-gold)', border: 'none', borderRadius: '6px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600', flexShrink: 0 }}
+                        >
+                          Importar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {searchQuery && searchResults.length === 0 && !searching && (
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>
+                  No se encontraron cartas para "{searchQuery}"
+                </p>
+              )}
+            </div>
+            
             <div style={{ display: 'grid', gridTemplateColumns: splitView ? '1fr 1fr' : 'minmax(350px, 450px) 1fr', gap: '2rem', alignItems: 'start' }}>
               {/* Card List */}
               <div>
-                <button onClick={createCard} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gold)', border: 'none', borderRadius: '10px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
-                  <Plus size={18} /> Nueva Carta
+                <button onClick={createCard} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--glass-bg)', border: '1px dashed var(--glass-border)', borderRadius: '10px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
+                  <Plus size={18} /> Nueva Carta Manual
                 </button>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: 'calc(100vh - 320px)', overflowY: 'auto' }}>

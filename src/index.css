@@ -11,6 +11,7 @@
   
   --accent-primary: #3b82f6; /* Brilliant Blue */
   --accent-secondary: #8b5cf6; /* Vibrant Purple */
+  --accent-gold: #f59e0b; /* Golden Accent - Sobrescrito por tema del admin */
   --accent-gradient: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   --accent-glow: rgba(59, 130, 246, 0.4);
   
@@ -947,9 +948,10 @@ main {
 }
 
 .games-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
+  justify-content: center;
 }
 
 .game-category-card {
@@ -964,6 +966,9 @@ main {
   text-decoration: none;
   color: var(--text-primary);
   transition: all 0.3s;
+  min-width: 140px;
+  max-width: 180px;
+  flex: 1;
 }
 
 .game-category-card:hover {
@@ -1175,6 +1180,7 @@ main {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  color: var(--text-primary);
 }
 
 .product-price {
@@ -1324,6 +1330,7 @@ main {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 2rem;
+  justify-items: center;
 }
 
 .trust-badge {
@@ -1445,7 +1452,7 @@ main {
   padding: 1rem 0.75rem;
 }
 
-/* Mobile Trust Scroll */
+/* Trust Scroll Container */
 .trust-scroll-container {
   overflow-x: auto;
   margin: 0 -1.5rem;
@@ -1462,11 +1469,31 @@ main {
   display: flex;
   gap: 1.5rem;
   padding-bottom: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .trust-scroll .trust-badge {
   flex-shrink: 0;
   min-width: 200px;
+}
+
+@media (min-width: 769px) {
+  .trust-scroll-container {
+    overflow-x: visible;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .trust-scroll {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .trust-scroll .trust-badge {
+    min-width: 220px;
+    max-width: 250px;
+  }
 }
 
 /* Mobile Cart FAB */
@@ -2802,10 +2829,6 @@ main {
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .games-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  
   .products-grid,
   .offers-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -3332,7 +3355,119 @@ main {
   flex-shrink: 0;
 }
 
-/* Product Card */
+/* Product Card Component Styles */
+.product-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  border-color: var(--accent-gold);
+}
+
+.product-card-image-container {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.product-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-card-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: bold;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+}
+
+.product-card-out-of-stock {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.product-card-rarity {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: var(--rarity-color, var(--accent-primary));
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.product-card-content {
+  padding: 1rem;
+}
+
+.product-card-name {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-card-game {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin: 0 0 2px 0;
+}
+
+.product-card-set {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  margin: 0 0 8px 0;
+  opacity: 0.7;
+}
+
+.product-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.product-card-price {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.product-card-btn {
+  padding: 8px 16px !important;
+  font-size: 0.8rem !important;
+  gap: 4px !important;
+}
+
+/* Catalog Product Card */
 .catalog-product-card {
   background: var(--bg-tertiary);
   border: 1px solid var(--glass-border);

@@ -97,7 +97,7 @@ const Toast = ({ toast, onRemove }) => {
         height: '24px',
         borderRadius: '50%',
         background: config.bg,
-        color: 'white',
+        color: 'var(--text-primary)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

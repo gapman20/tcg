@@ -39,7 +39,7 @@ const Portfolio = () => {
 
             <div style={{ padding: '2rem', flex: 1, position: 'relative', zIndex: 2, marginTop: '-3rem' }}>
               <span className="text-gradient" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '800', background: 'var(--accent-gold-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{project.cat}</span>
-              <h3 className="h2-premium" style={{ fontSize: '1.8rem', marginTop: '0.5rem', marginBottom: '1rem', letterSpacing: '-0.02em', color: 'white' }}>{project.title}</h3>
+              <h3 className="h2-premium" style={{ fontSize: '1.8rem', marginTop: '0.5rem', marginBottom: '1rem', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>{project.title}</h3>
               <p style={{ color: 'var(--text-secondary)' }}>Carta icónica de la franquicia. Perfecta para colección o para completar tu mazo competitivo.</p>
             </div>
           </div>

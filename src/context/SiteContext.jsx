@@ -132,6 +132,7 @@ const defaultProducts = [
 const defaultTheme = {
   accentPrimary:   '#3b82f6',
   accentSecondary: '#8b5cf6',
+  accentGold:      '#f59e0b',
   bgPrimary:       '#050505',
   bgSecondary:     '#0a0a0d',
   bgTertiary:      '#111116',
@@ -203,6 +204,7 @@ function applyTheme(theme) {
 
   root.style.setProperty('--accent-primary',   theme.accentPrimary);
   root.style.setProperty('--accent-secondary',  theme.accentSecondary);
+  root.style.setProperty('--accent-gold',       theme.accentGold || '#f59e0b');
   root.style.setProperty('--accent-gradient',   `linear-gradient(135deg, ${theme.accentPrimary}, ${theme.accentSecondary})`);
   root.style.setProperty('--accent-glow',       `${theme.accentPrimary}66`);
   root.style.setProperty('--bg-primary',        theme.bgPrimary);

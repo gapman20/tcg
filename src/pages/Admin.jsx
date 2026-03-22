@@ -17,7 +17,7 @@ const inputSt = {
   width: '100%', padding: '11px 14px',
   background: 'rgba(255,255,255,0.04)',
   border: '1px solid var(--glass-border)',
-  borderRadius: '8px', color: 'white',
+  borderRadius: '8px', color: 'var(--text-primary)',
   fontFamily: 'var(--font-body)', fontSize: '0.95rem',
   outline: 'none', resize: 'vertical',
   transition: 'border-color 0.2s',
@@ -740,7 +740,7 @@ const Admin = () => {
             <div style={{ display: 'grid', gridTemplateColumns: splitView ? '1fr 1fr' : 'minmax(350px, 450px) 1fr', gap: '2rem', alignItems: 'start' }}>
               {/* Sellados List */}
               <div>
-                <button onClick={createSellado} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
+                <button onClick={createSellado} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '10px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
                   <Plus size={18} /> Nuevo Producto
                 </button>
 
@@ -770,7 +770,7 @@ const Admin = () => {
                         )}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <h5 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: '700', color: 'white', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</h5>
+                        <h5 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</h5>
                         <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{item.game} • {item.type}</p>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
                           <span style={{ fontSize: '0.7rem', background: 'rgba(245,158,11,0.2)', color: '#f59e0b', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>${item.price}</span>
@@ -933,7 +933,7 @@ const Admin = () => {
             <div style={{ display: 'grid', gridTemplateColumns: splitView ? '1fr 1fr' : 'minmax(350px, 450px) 1fr', gap: '2rem', alignItems: 'start' }}>
               {/* Card List */}
               <div>
-                <button onClick={createCard} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
+                <button onClick={createCard} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '10px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
                   <Plus size={18} /> Nueva Carta
                 </button>
 
@@ -963,7 +963,7 @@ const Admin = () => {
                         )}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <h5 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: '700', color: 'white', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.name}</h5>
+                        <h5 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.name}</h5>
                         <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{card.game} • {card.set}</p>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
                           <span style={{ fontSize: '0.7rem', background: card.rarity === 'Common' ? 'rgba(150,150,150,0.2)' : card.rarity === 'Rare' ? 'rgba(59,130,246,0.2)' : card.rarity === 'Ultra Rare' ? 'rgba(234,179,8,0.2)' : 'rgba(168,85,247,0.2)', color: card.rarity === 'Common' ? '#9ca3af' : card.rarity === 'Rare' ? '#3b82f6' : card.rarity === 'Ultra Rare' ? '#eab308' : '#a855f7', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>{card.rarity}</span>
@@ -1079,7 +1079,7 @@ const Admin = () => {
                               }
                             }
                           }} />
-                          <label htmlFor={`card-img-${selectedCard.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 16px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600', transition: 'all 0.2s' }}
+                          <label htmlFor={`card-img-${selectedCard.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 16px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600', transition: 'all 0.2s' }}
                             onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
                             onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}
                           >
@@ -1130,14 +1130,14 @@ const Admin = () => {
           <div>
             <h3 style={sectionTitle}><Tag size={20} color="var(--accent-primary)" /> Campañas de Oferta</h3>
             <div style={{ padding: '14px 18px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '10px', marginBottom: '2rem', fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-              <strong style={{ color: 'white' }}>🎯 Ofertas Temporales:</strong> Crea campañas de descuento para todos los productos o selecciona productos específicos. Controla el % de descuento, fechas, productos y el banner.
+              <strong style={{ color: 'var(--text-primary)' }}>🎯 Ofertas Temporales:</strong> Crea campañas de descuento para todos los productos o selecciona productos específicos. Controla el % de descuento, fechas, productos y el banner.
             </div>
 
             {activeCampaign && (
               <div style={{ padding: '1rem 1.5rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ width: '10px', height: '10px', background: '#10b981', borderRadius: '50%', animation: 'pulse 2s infinite' }} />
                 <div>
-                  <p style={{ fontWeight: '700', color: 'white', marginBottom: '2px' }}>Oferta Activa Ahora</p>
+                  <p style={{ fontWeight: '700', color: 'var(--text-primary)', marginBottom: '2px' }}>Oferta Activa Ahora</p>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                     <strong style={{ color: '#10b981' }}>{activeCampaign.name}</strong> — {activeCampaign.discountPercent}% de descuento
                   </p>
@@ -1148,7 +1148,7 @@ const Admin = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 450px) 1fr', gap: '2rem', alignItems: 'start' }}>
               {/* Campaigns List */}
               <div>
-                <button onClick={() => setEditingCampaign(createCampaign())} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
+                <button onClick={() => setEditingCampaign(createCampaign())} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '10px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
                   <Plus size={18} /> Nueva Campaña
                 </button>
 
@@ -1175,7 +1175,7 @@ const Admin = () => {
                         onMouseLeave={e => { if (editingCampaign !== camp.id) e.currentTarget.style.borderColor = 'var(--glass-border)'; }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                          <h5 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: '700', color: 'white' }}>{camp.name}</h5>
+                          <h5 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-primary)' }}>{camp.name}</h5>
                           <span style={{ 
                             fontSize: '0.7rem', 
                             fontWeight: 'bold',
@@ -1305,7 +1305,7 @@ const Admin = () => {
                                 updateCampaign(selectedCampaign.id, 'selectedProducts', newSelected);
                               }} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <span style={{ fontSize: '0.85rem', color: 'white', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</span>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</span>
                                 <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{product.game} • {product.type}</span>
                               </div>
                             </label>
@@ -1329,7 +1329,7 @@ const Admin = () => {
                         gap: '8px'
                       }}>
                         <Tag size={16} color="white" />
-                        <span style={{ color: 'white', fontWeight: '700', fontSize: '0.9rem' }}>{selectedCampaign.bannerText || 'Texto del banner'}</span>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '0.9rem' }}>{selectedCampaign.bannerText || 'Texto del banner'}</span>
                       </div>
                     </div>
                   </div>
@@ -1351,7 +1351,7 @@ const Admin = () => {
           <div>
             <h3 style={sectionTitle}><Palette size={20} color="var(--accent-primary)" /> Colores & Tema</h3>
             <div style={{ padding: '14px 18px', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '10px', marginBottom: '2rem', fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-              🎨 <strong style={{ color: 'white' }}>Los cambios se aplican en tiempo real.</strong> Ve la página en otra pestaña y verás los colores actualizarse cada vez que selecciones uno. Presiona <strong style={{ color: 'white' }}>Guardar</strong> cuando estés conforme.
+              🎨 <strong style={{ color: 'var(--text-primary)' }}>Los cambios se aplican en tiempo real.</strong> Ve la página en otra pestaña y verás los colores actualizarse cada vez que selecciones uno. Presiona <strong style={{ color: 'var(--text-primary)' }}>Guardar</strong> cuando estés conforme.
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
@@ -1582,7 +1582,7 @@ const Admin = () => {
                     ← Volver a la lista
                   </button>
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <button onClick={() => { duplicateBlogPost(editPost); setEditPost(null); }} style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', color: 'white', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>Duplicar</button>
+                    <button onClick={() => { duplicateBlogPost(editPost); setEditPost(null); }} style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>Duplicar</button>
                     <button onClick={() => { if (confirm('¿Seguro que deseas eliminar este artículo?')) { deleteBlogPost(editPost); setEditPost(null); } }} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>Eliminar</button>
                   </div>
                 </div>
@@ -1612,7 +1612,7 @@ const Admin = () => {
                     {/* Meta Sidebar */}
                     <div style={{ padding: '2rem', background: 'rgba(255,255,255,0.01)' }}>
                       <div style={{ marginBottom: '2rem', padding: '1rem', background: post.published ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)', border: `1px solid ${post.published ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}`, borderRadius: '8px' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: 'white', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '0.9rem' }}>
                           <input type="checkbox" checked={post.published} onChange={e => updateBlogPost(post.id, 'published', e.target.checked)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
                           {post.published ? '🟢 Estado: Publicado (Visible)' : '🟡 Estado: Borrador (Oculto)'}
                         </label>
@@ -1742,7 +1742,7 @@ const Admin = () => {
           <div>
             <h3 style={sectionTitle}><ImageIcon size={20} color="var(--accent-primary)" /> Gestión de Imágenes</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '2rem', padding: '12px 16px', background: 'rgba(59,130,246,0.07)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '8px', lineHeight: '1.6' }}>
-              💡 Las imágenes se guardan en tu navegador como base64. <strong style={{ color: 'white' }}>Máximo 2 MB por imagen.</strong> Para imágenes más grandes, considera almacenamiento en la nube.
+              💡 Las imágenes se guardan en tu navegador como base64. <strong style={{ color: 'var(--text-primary)' }}>Máximo 2 MB por imagen.</strong> Para imágenes más grandes, considera almacenamiento en la nube.
             </p>
             <ImageUploader label="Logo / Imagen de Marca" description="PNG transparente recomendado — 200×60 px" value={images.logo} onChange={val => updateImage('logo', val)} />
             <ImageUploader label="Imagen Hero (Fondo del Inicio)" description="JPG/WebP — 1920×1080 px" value={images.heroBg} onChange={val => updateImage('heroBg', val)} />
@@ -1765,7 +1765,7 @@ const Admin = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
               <h3 style={sectionTitle}><Mail size={20} color="var(--accent-primary)" /> Bandeja de Entrada</h3>
               {unreadCount > 0 && (
-                <span style={{ background: '#ef4444', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                <span style={{ background: '#ef4444', color: 'var(--text-primary)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold' }}>
                   {unreadCount} sin leer
                 </span>
               )}
@@ -1874,7 +1874,7 @@ const Admin = () => {
               <a href="/" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'transparent', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-heading)', fontWeight: '600', textDecoration: 'none' }}>
                 <Eye size={15} /> Ver Sitio
               </a>
-              <button onClick={() => { saveContent(); toast.success('Cambios guardados correctamente'); }} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 20px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.9rem', fontFamily: 'var(--font-heading)', fontWeight: '700', boxShadow: '0 4px 14px var(--accent-glow)' }}>
+              <button onClick={() => { saveContent(); toast.success('Cambios guardados correctamente'); }} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 20px', background: 'var(--accent-gradient)', border: 'none', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontFamily: 'var(--font-heading)', fontWeight: '700', boxShadow: '0 4px 14px var(--accent-glow)' }}>
                 <Save size={17} /> Guardar
               </button>
             </div>
@@ -1890,7 +1890,7 @@ const Admin = () => {
         {splitView && (
           <div style={{ flex: 1, background: '#fff', position: 'relative' }}>
             <iframe src="/" style={{ width: '100%', height: '100%', border: 'none' }} title="Vista Previa" />
-            <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', color: 'white', padding: '5px 10px', borderRadius: '20px', fontSize: '0.75rem', backdropFilter: 'blur(5px)' }}>
+            <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', color: 'var(--text-primary)', padding: '5px 10px', borderRadius: '20px', fontSize: '0.75rem', backdropFilter: 'blur(5px)' }}>
               Live Preview
             </div>
           </div>

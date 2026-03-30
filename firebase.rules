@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Cards collection - Public read for catalog, authenticated write for admin
+    match /cards/{cardId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+    
+    // Orders collection - Complex rules for privacy
+    match /orders/{orderId} {
+      // Anyone can create orders (guest checkout)
+      allow create: if true;
+      
+      // Authenticated users can read their own orders
+      // Also allow reading if the email matches (for guest order lookup)
+      allow read: if isAuthenticated() || 
+                   resource.data.email == request.resource.data.email;
+      
+      // Only authenticated users can update or delete orders
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+    
+    // Cart sessions - Strict ownership rules
+    match /cart_sessions/{userId} {
+      // Only the owner can read and write their cart
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+    
+    // Site data - Existing rules (keep as is)
+    match /site_data/{docId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+  }
+}

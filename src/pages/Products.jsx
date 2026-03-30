@@ -1,126 +1,435 @@
-import React from 'react';
-import { useSite } from '../context/SiteContext';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { Package, ShoppingCart, Heart, Search, SlidersHorizontal, X, Grid, List } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useToast } from '../components/Toast';
+import SEO from '../components/SEO';
 
-const parseText = (text) => {
-  if (!text) return '';
-  let html = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text-card-primary);">$1</strong>');
-  html = html.replace(/^- (.*)$/gm, '<li style="margin-left: 1.5rem; margin-bottom: 0.5rem;">$1</li>');
-  html = html.replace(/(<li.*<\/li>)/s, '<ul style="margin-top: 0.5rem; margin-bottom: 1rem; padding-left: 0;">$1</ul>');
-  html = html.replace(/\n/g, '<br/>');
-  return html;
+const SELLADOS_KEY = 'tcg_sellados';
+
+const GAMES = [
+  { id: 'all', name: 'Todos', icon: '🎯', color: '#6366f1' },
+  { id: 'pokemon', name: 'Pokémon TCG', icon: '🔴', color: '#ef4444' },
+  { id: 'yugioh', name: 'Yu-Gi-Oh!', icon: '💛', color: '#f59e0b' },
+  { id: 'magic', name: 'Magic: The Gathering', icon: '🔵', color: '#3b82f6' },
+  { id: 'digimon', name: 'Digimon', icon: '🟣', color: '#8b5cf6' },
+  { id: 'dragonball', name: 'Dragon Ball', icon: '🟠', color: '#f97316' },
+  { id: 'onepiece', name: 'One Piece', icon: '🏴‍☠️', color: '#dc2626' },
+  { id: 'lorcana', name: 'Lorcana', icon: '✨', color: '#ec4899' },
+];
+
+const SORT_OPTIONS = [
+  { id: 'name-asc', name: 'Nombre A-Z' },
+  { id: 'name-desc', name: 'Nombre Z-A' },
+  { id: 'price-asc', name: 'Precio: Menor a Mayor' },
+  { id: 'price-desc', name: 'Precio: Mayor a Menor' },
+  { id: 'discount', name: 'Mayor Descuento' }
+];
+
+const PRODUCT_TYPES = [
+  { id: 'all', name: 'Todos' },
+  { id: 'booster-box', name: 'Booster Box' },
+  { id: 'elite-trainer', name: 'Elite Trainer Box' },
+  { id: 'deck', name: 'Deck' },
+  { id: 'bundle', name: 'Bundle' },
+  { id: 'starter', name: 'Starter Deck' },
+  { id: 'blister', name: 'Blister' },
+  { id: 'premium', name: 'Premium' }
+];
+
+const formatPrice = (price) => {
+  if (typeof price === 'number') {
+    return `$${price.toLocaleString('es-MX')}`;
+  }
+  return price || '';
+};
+
+const normalizeSealedProduct = (product) => ({
+  ...product,
+  price: product.price || 0,
+  priceDisplay: product.priceDisplay || formatPrice(product.price),
+  game: product.game || 'pokemon',
+  set: product.set || '',
+  type: product.type || 'booster-box',
+  stock: product.stock ?? 1,
+  discountPercent: product.discountPercent || 0
+});
+
+const sampleSealedProducts = [
+  { id: 's1', name: 'Charizard ex Ultra Premium Collection', price: 2990, priceDisplay: '$2,990', game: 'pokemon', set: 'Phantasmal Flames', type: 'premium', badge: 'Nuevo', image: null, stock: 5 },
+  { id: 's2', name: 'Mega Evolution Elite Trainer Box', price: 1590, priceDisplay: '$1,590', game: 'pokemon', set: 'Mega Evolution', type: 'elite-trainer', badge: 'Oferta', originalPrice: 1800, image: null, stock: 3 },
+  { id: 's3', name: 'Prismatic Evolutions Booster Box', price: 5800, priceDisplay: '$5,800', game: 'pokemon', set: 'Scarlet & Violet', type: 'booster-box', badge: 'Preventa', image: null, stock: 10 },
+  { id: 's4', name: 'Marvel Super Heroes Commander Deck', price: 890, priceDisplay: '$890', game: 'magic', set: 'Marvel', type: 'deck', badge: 'Nuevo', image: null, stock: 8 },
+  { id: 's5', name: 'Destined Rivals Booster Bundle', price: 950, priceDisplay: '$950', game: 'pokemon', set: 'Scarlet & Violet', type: 'bundle', image: null, stock: 12 },
+  { id: 's6', name: 'Digimon BT-15 Booster Box', price: 2200, priceDisplay: '$2,200', game: 'digimon', set: 'BT-15', type: 'booster-box', badge: 'Nuevo', image: null, stock: 4 },
+  { id: 's7', name: 'Dragon Ball Super Starter Deck', price: 450, priceDisplay: '$450', game: 'dragonball', set: 'Series 1', type: 'starter', image: null, stock: 6 },
+  { id: 's8', name: 'One Piece OP-10 Booster Box', price: 1800, priceDisplay: '$1,800', game: 'onepiece', set: 'Royal Blood', type: 'booster-box', badge: 'Preventa', image: null, stock: 7 },
+  { id: 's9', name: 'Surging Sparks Booster Box', price: 4200, priceDisplay: '$4,200', game: 'pokemon', set: 'Scarlet & Violet', type: 'booster-box', originalPrice: 6200, image: null, stock: 5 },
+  { id: 's10', name: 'Yu-Gi-Oh! Structure Deck', price: 380, priceDisplay: '$380', game: 'yugioh', set: 'Structure Deck', type: 'deck', image: null, stock: 12 },
+  { id: 's11', name: 'Phantasmal Flames 3-Pack Blister', price: 80, priceDisplay: '$80', game: 'pokemon', set: 'Mega Evolution', type: 'blister', originalPrice: 120, image: null, stock: 25 },
+  { id: 's12', name: 'Lorcana Booster Box', price: 2400, priceDisplay: '$2,400', game: 'magic', set: 'Disney Lorcana', type: 'booster-box', badge: 'Nuevo', image: null, stock: 3 }
+];
+
+const SealedProductCard = ({ product, onAddToCart }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const { isInWishlist, toggleItem } = useWishlist();
+  const toast = useToast();
+  
+  const hasDiscount = product.discountPercent > 0;
+  const badgeClass = product.badge ? product.badge.toLowerCase().replace(/[^a-z]/g, '') : '';
+  const wishlisted = isInWishlist(product.id);
+  
+  const handleToggleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const wasAdded = toggleItem(product);
+    if (wasAdded) {
+      toast.success(`${product.name} añadido a favoritos`);
+    } else {
+      toast.info(`${product.name} eliminado de favoritos`);
+    }
+  };
+  
+  return (
+    <div 
+      className="tcg-product-card"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="product-image-container">
+        {product.image ? (
+          <img src={product.image} alt={product.name} className="product-image" />
+        ) : (
+          <div className="product-placeholder">
+            <Package size={48} color="var(--text-secondary)" />
+          </div>
+        )}
+        
+        {product.badge && (
+          <span className={`product-badge badge-${badgeClass}`}>
+            {product.badge}
+          </span>
+        )}
+        
+        {hasDiscount && (
+          <span className="product-badge badge-oferta">
+            -{product.discountPercent}% OFF
+          </span>
+        )}
+        
+        <div className={`product-actions ${isHovered || window.innerWidth < 768 ? 'visible' : ''}`}>
+          <button 
+            className="action-btn wishlist-btn"
+            onClick={handleToggleWishlist}
+          >
+            <Heart size={20} fill={wishlisted ? 'var(--accent-gold)' : 'none'} color={wishlisted ? 'var(--accent-gold)' : 'currentColor'} />
+          </button>
+          <button className="action-btn cart-btn" onClick={() => onAddToCart(product)}>
+            <ShoppingCart size={20} />
+          </button>
+        </div>
+        
+        {product.stock === 0 && (
+          <div className="product-soldout-overlay">
+            <span>Agotado</span>
+          </div>
+        )}
+      </div>
+      
+      <div className="product-info">
+        <div className="product-tags">
+          {product.game && <span className="product-tag">{product.game}</span>}
+          {product.set && <span className="product-tag">{product.type.replace(/-/g, ' ')}</span>}
+        </div>
+        <h3 className="product-name">{product.name}</h3>
+        <div className="product-price">
+          <span className="price-current">{product.priceDisplay}</span>
+        </div>
+        <button 
+          className="add-to-cart-btn"
+          onClick={() => onAddToCart(product)}
+          disabled={product.stock === 0}
+        >
+          {product.stock === 0 ? 'Agotado' : 'Agregar al carrito'}
+        </button>
+      </div>
+    </div>
+  );
 };
 
 const Products = () => {
-  const { products, theme } = useSite();
+  const { addItem, itemCount } = useCart();
+  
+  const [productsData, setProductsData] = useState(sampleSealedProducts);
+  const [selectedGame, setSelectedGame] = useState('all');
+  const [selectedType, setSelectedType] = useState('all');
+  const [sortBy, setSortBy] = useState('name-asc');
+  const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState('grid');
+  const [showMobileCart, setShowMobileCart] = useState(false);
 
-  const activeProducts = products?.filter(p => p.active) || [];
+  useEffect(() => {
+    const loadProducts = () => {
+      try {
+        const stored = localStorage.getItem(SELLADOS_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setProductsData(parsed.map(normalizeSealedProduct));
+          }
+        }
+      } catch (e) {
+        console.error('Error loading sellados from localStorage:', e);
+      }
+    };
+
+    loadProducts();
+    
+    const handleStorageChange = (e) => {
+      if (e.key === SELLADOS_KEY) {
+        loadProducts();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [SELLADOS_KEY]);
+
+  const products = useMemo(() => {
+    let filtered = [...productsData];
+    
+    if (selectedGame !== 'all') {
+      filtered = filtered.filter(p => p.game === selectedGame);
+    }
+    
+    if (selectedType !== 'all') {
+      filtered = filtered.filter(p => p.type === selectedType);
+    }
+    
+    switch (sortBy) {
+      case 'name-asc':
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'name-desc':
+        filtered.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case 'price-asc':
+        filtered.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        filtered.sort((a, b) => b.price - a.price);
+        break;
+      case 'discount':
+        filtered.sort((a, b) => (b.discountPercent || 0) - (a.discountPercent || 0));
+        break;
+      default:
+        break;
+    }
+    
+    return filtered;
+  }, [productsData, selectedGame, selectedType, sortBy]);
+
+  const handleAddToCart = (product) => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      game: product.game
+    });
+  };
+  
+  const clearFilters = () => {
+    setSelectedGame('all');
+    setSelectedType('all');
+    setSortBy('name-asc');
+  };
+
+  const activeFiltersCount = [
+    selectedGame !== 'all',
+    selectedType !== 'all'
+  ].filter(Boolean).length;
+
+  const discountedCount = productsData.filter(p => p.originalPrice && p.originalPrice > p.price).length;
 
   return (
-    <div style={{ paddingTop: 'var(--nav-height)', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+    <div className="catalog-page">
+      <SEO 
+        title="Productos Sellados" 
+        description="Booster Boxes, Elite Trainer Box, Decks y más productos sellados TCG."
+      />
+      
       {/* Header */}
-      <section style={{ padding: '4rem 2rem', textAlign: 'center', borderBottom: '1px solid var(--glass-border)' }}>
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '1rem' }}>
-          Nuestro <span style={{ background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Catálogo</span>
-        </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto' }}>
-          Explora nuestra selección de productos eléctricos de alta calidad. Herramientas, iluminación y material al mejor precio.
-        </p>
-      </section>
-
-      {/* Product Grid */}
-      <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '4rem 2rem' }}>
-        {activeProducts.length === 0 ? (
-          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '4rem' }}>
-            Aún no hay productos disponibles.
-          </div>
-        ) : (
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
-            gap: '2.5rem' 
-          }}>
-            {activeProducts.map((product) => (
-              <div 
-                key={product.id} 
-                className="glass-panel"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  overflow: 'hidden',
-                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-5px)';
-                  e.currentTarget.style.boxShadow = `0 15px 30px ${theme.accentPrimary}33`;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
+      <div className="catalog-header">
+        <div className="catalog-header-content">
+          <h1>Productos Sellados</h1>
+          <p>Booster Boxes, ETBs, Decks, Bundles y más</p>
+        </div>
+      </div>
+      
+      <div className="catalog-container">
+        {/* Game Categories Tabs - Horizontal Scroll */}
+        <div className="catalog-game-tabs">
+          {GAMES.map(game => (
+            <button
+              key={game.id}
+              className={`game-tab ${selectedGame === game.id ? 'active' : ''}`}
+              onClick={() => setSelectedGame(game.id)}
+              style={{ '--tab-color': game.color }}
+            >
+              <span className="game-tab-icon">{game.icon}</span>
+              <span className="game-tab-name">{game.name}</span>
+            </button>
+          ))}
+        </div>
+        
+        {/* Controls Bar */}
+        <div className="catalog-controls">
+          <div className="catalog-actions">
+            <button 
+              className={`filter-toggle ${showFilters ? 'active' : ''}`}
+              onClick={() => setShowFilters(true)}
+            >
+              <SlidersHorizontal size={20} />
+              Filtros
+              {activeFiltersCount > 0 && (
+                <span className="filter-count">{activeFiltersCount}</span>
+              )}
+            </button>
+            
+            <select 
+              className="sort-select"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              {SORT_OPTIONS.map(opt => (
+                <option key={opt.id} value={opt.id}>{opt.name}</option>
+              ))}
+            </select>
+            
+            <div className="view-toggle">
+              <button 
+                className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                onClick={() => setViewMode('grid')}
               >
-                
-                {/* Product Image */}
-                <div style={{ height: '240px', background: 'rgba(255,255,255,0.03)', position: 'relative' }}>
-                  {product.image ? (
-                    <img 
-                      src={product.image} 
-                      alt={product.name} 
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                    />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', opacity: 0.5 }}>
-                      Sin Imagen
-                    </div>
-                  )}
-                  {product.price && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: '15px',
-                      right: '15px',
-                      background: 'var(--accent-primary)',
-                      color: 'white',
-                      padding: '6px 14px',
-                      borderRadius: '30px',
-                      fontWeight: '800',
-                      fontSize: '1rem',
-                      fontFamily: 'var(--font-heading)',
-                      boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
-                    }}>
-                      {product.price}
-                    </div>
-                  )}
-                </div>
-
-                {/* Product Info */}
-                <div style={{ padding: '1.8rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <h3 style={{ 
-                    fontFamily: 'var(--font-heading)', 
-                    fontSize: '1.25rem', 
-                    fontWeight: '800', 
-                    color: 'var(--text-card-primary)', 
-                    marginBottom: '0.8rem' 
-                  }}>
-                    {product.name}
-                  </h3>
-                  
-                  <div 
-                    style={{ 
-                      color: 'var(--text-card-secondary)', 
-                      fontSize: '0.95rem', 
-                      lineHeight: '1.6', 
-                      flex: 1 
-                    }}
-                    dangerouslySetInnerHTML={{ __html: parseText(product.description) }}
-                  />
-                </div>
-
-              </div>
+                <Grid size={20} />
+              </button>
+              <button 
+                className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
+                onClick={() => setViewMode('list')}
+              >
+                <List size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Results Info */}
+        <div className="catalog-results-info">
+          <span>Mostrando {products.length} producto{products.length !== 1 ? 's' : ''}</span>
+          {selectedGame !== 'all' && (
+            <span className="active-filter">
+              {GAMES.find(g => g.id === selectedGame)?.name}
+            </span>
+          )}
+          {discountedCount > 0 && (
+            <span className="discount-indicator">
+              🔥 {discountedCount} en oferta
+            </span>
+          )}
+        </div>
+        
+        {/* Products Grid */}
+        {products.length > 0 ? (
+          <div className={`catalog-products ${viewMode}`}>
+            {products.map(product => (
+              <SealedProductCard 
+                key={product.id} 
+                product={product} 
+                onAddToCart={handleAddToCart} 
+              />
             ))}
           </div>
+        ) : (
+          <div className="catalog-empty">
+            <span className="empty-icon">📦</span>
+            <h3>No se encontraron productos</h3>
+            <p>Intenta con otros filtros</p>
+            <button className="btn-primary" onClick={clearFilters}>
+              Limpiar filtros
+            </button>
+          </div>
         )}
-      </section>
+      </div>
+
+      {/* Mobile Cart FAB */}
+      {itemCount > 0 && (
+        <Link to="/carrito" className="mobile-cart-fab">
+          <ShoppingCart size={24} />
+          <span className="mobile-cart-badge">{itemCount}</span>
+          <span className="mobile-cart-text">Ver Carrito</span>
+        </Link>
+      )}
+
+      {/* Mobile Filters Modal */}
+      {showFilters && (
+        <div className="filters-modal-overlay" onClick={() => setShowFilters(false)}>
+          <div className="filters-modal" onClick={e => e.stopPropagation()}>
+            <div className="filters-modal-header">
+              <h3>Filtros</h3>
+              <button className="filters-modal-close" onClick={() => setShowFilters(false)}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="filters-modal-content">
+              <div className="filter-section">
+                <h4>Juego</h4>
+                <div className="filter-chips">
+                  {GAMES.map(game => (
+                    <button
+                      key={game.id}
+                      className={`filter-chip ${selectedGame === game.id ? 'active' : ''}`}
+                      onClick={() => setSelectedGame(game.id)}
+                      style={game.id !== 'all' ? { borderColor: game.color, color: game.color } : {}}
+                    >
+                      {game.icon} {game.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="filter-section">
+                <h4>Tipo de Producto</h4>
+                <div className="filter-chips">
+                  {PRODUCT_TYPES.map(type => (
+                    <button
+                      key={type.id}
+                      className={`filter-chip ${selectedType === type.id ? 'active' : ''}`}
+                      onClick={() => setSelectedType(type.id)}
+                    >
+                      {type.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="filters-modal-footer">
+              <button className="btn-outline" onClick={clearFilters}>
+                Limpiar filtros
+              </button>
+              <button className="btn-primary" onClick={() => setShowFilters(false)}>
+                Aplicar ({products.length})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

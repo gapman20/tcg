@@ -18,9 +18,9 @@ const Blog = () => {
   return (
     <div className="page" style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto', minHeight: '80vh' }}>
       <header style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <h1 className="h1-premium mb-4">Blog &amp; Noticias</h1>
+        <h1 className="h1-premium mb-4">Blog TCG</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '2rem' }}>
-          Mantente actualizado con las últimas tendencias de la industria, consejos de marketing y guías tecnológicas.
+          Guías, análisis de sets, tips de colección y noticias del mundo de los Trading Card Games.
         </p>
         <div style={{ position: 'relative', maxWidth: '480px', margin: '0 auto' }}>
           <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', pointerEvents: 'none' }} />
@@ -41,9 +41,9 @@ const Blog = () => {
 
       {filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
-          <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</p>
+          <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎴</p>
           <p style={{ fontSize: '1.1rem' }}>{search ? 'No se encontraron artículos.' : 'Aún no hay artículos publicados.'}</p>
-          {!search && <p style={{ opacity: 0.6, marginTop: '0.5rem' }}>Ve al panel de admin para crear el primero.</p>}
+          {!search && <p style={{ opacity: 0.6, marginTop: '0.5rem' }}>Pronto traremos guías y análisis de cartas.</p>}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -57,7 +57,7 @@ const Blog = () => {
               gridTemplateColumns: post.image ? '280px 1fr' : '1fr',
               transition: 'transform 0.3s ease, border-color 0.3s ease',
             }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-primary)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-gold)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--glass-border)'; e.currentTarget.style.transform = 'translateY(0)'; }}
             >
               {post.image && (
@@ -71,9 +71,9 @@ const Blog = () => {
                     {post.tags.split(',').map(tag => tag.trim()).filter(Boolean).map(tag => (
                       <span key={tag} style={{
                         display: 'inline-flex', alignItems: 'center', gap: '4px',
-                        padding: '3px 10px', background: 'rgba(59,130,246,0.1)',
-                        border: '1px solid rgba(59,130,246,0.25)', borderRadius: '50px',
-                        fontSize: '0.75rem', color: 'var(--accent-primary)', fontWeight: '600',
+                        padding: '3px 10px', background: 'rgba(245, 158, 11, 0.1)',
+                        border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '50px',
+                        fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: '600',
                       }}>
                         <Tag size={10} /> {tag}
                       </span>
@@ -92,7 +92,7 @@ const Blog = () => {
                 </p>
                 <Link to={`/blog/${post.id}`} style={{
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  color: 'var(--accent-primary)', fontWeight: '700', textDecoration: 'none', fontSize: '0.95rem',
+                  color: 'var(--accent-gold)', fontWeight: '700', textDecoration: 'none', fontSize: '0.95rem',
                 }}
                   onMouseEnter={e => { e.currentTarget.style.gap = '10px'; }}
                   onMouseLeave={e => { e.currentTarget.style.gap = '6px'; }}

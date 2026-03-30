@@ -68,7 +68,7 @@ const ImageUploader = ({ label, description, value, onChange, maxMB = 2 }) => {
           >
             <button
               onClick={() => inputRef.current?.click()}
-              style={{ opacity: 0, background: 'rgba(59,130,246,0.9)', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontWeight: '700', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', transition: 'opacity 0.2s' }}
+              style={{ opacity: 0, background: 'rgba(59,130,246,0.9)', color: 'var(--text-primary)', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontWeight: '700', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', transition: 'opacity 0.2s' }}
               onMouseEnter={e => { e.currentTarget.style.opacity = 1; }}
               onFocus={e => { e.currentTarget.style.opacity = 1; }}
             >
@@ -76,14 +76,14 @@ const ImageUploader = ({ label, description, value, onChange, maxMB = 2 }) => {
             </button>
             <button
               onClick={handleRemove}
-              style={{ opacity: 0, background: 'rgba(239,68,68,0.9)', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontWeight: '700', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', transition: 'opacity 0.2s' }}
+              style={{ opacity: 0, background: 'rgba(239,68,68,0.9)', color: 'var(--text-primary)', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontWeight: '700', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', transition: 'opacity 0.2s' }}
               onMouseEnter={e => { e.currentTarget.style.opacity = 1; }}
               onFocus={e => { e.currentTarget.style.opacity = 1; }}
             >
               <X size={16} /> Eliminar
             </button>
           </div>
-          <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(16,185,129,0.9)', borderRadius: '50px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: '700', color: 'white' }}>
+          <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(16,185,129,0.9)', borderRadius: '50px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-primary)' }}>
             <CheckCircle size={12} /> Cargada
           </div>
         </div>

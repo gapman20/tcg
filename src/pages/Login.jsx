@@ -32,7 +32,7 @@ const Login = () => {
             placeholder="Correo electrónico" 
             value={email} 
             onChange={(e) => { setEmail(e.target.value); setError(false); }}
-            style={{ width: '100%', padding: '14px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${error ? '#ef4444' : 'var(--glass-border)'}`, color: 'white', borderRadius: '8px', outline: 'none' }} 
+            style={{ width: '100%', padding: '14px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${error ? '#ef4444' : 'var(--glass-border)'}`, color: 'var(--text-primary)', borderRadius: '8px', outline: 'none' }} 
             required
           />
           <input 
@@ -40,7 +40,7 @@ const Login = () => {
             placeholder="Contraseña" 
             value={pass} 
             onChange={(e) => { setPass(e.target.value); setError(false); }}
-            style={{ width: '100%', padding: '14px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${error ? '#ef4444' : 'var(--glass-border)'}`, color: 'white', borderRadius: '8px', outline: 'none' }} 
+            style={{ width: '100%', padding: '14px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${error ? '#ef4444' : 'var(--glass-border)'}`, color: 'var(--text-primary)', borderRadius: '8px', outline: 'none' }} 
             required
           />
           {error && <span style={{ color: '#ef4444', fontSize: '0.8rem', textAlign: 'left', marginTop: '-0.5rem' }}>Credenciales incorrectas</span>}

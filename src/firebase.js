@@ -1,22 +1,20 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+// Firebase has been removed from this project
+// This file is kept as a placeholder for future API integration
+// 
+// To add a backend API later:
+// 1. Create a new API service in src/services/api.js
+// 2. Update context files to use the API instead of localStorage
+// 3. Remove this file
 
-const firebaseConfig = {
-  apiKey: "AIzaSyATtBbOcQOVFVoSQIs4GldUFU_D3AGMiVw",
-  authDomain: "electrica-36fa4.firebaseapp.com",
-  projectId: "electrica-36fa4",
-  storageBucket: "electrica-36fa4.firebasestorage.app",
-  messagingSenderId: "31228836589",
-  appId: "1:31228836589:web:92f88215c8c8660e9c2ae4",
-  measurementId: "G-3EP0WG7MZE"
+const firebaseStub = {
+  message: 'Firebase removed - using localStorage only',
+  ready: true,
+  offlineMode: true
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+export default firebaseStub;
 
-// Export services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+// Placeholder exports to prevent import errors
+export const auth = null;
+export const db = null;
+export const storage = null;

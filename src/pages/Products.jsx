@@ -180,6 +180,7 @@ const Products = () => {
           setProductsData(products.map(product => ({
             ...product,
             image: product.imageUrl,
+            game: typeof product.game === 'object' ? product.game.name : product.game,
             priceDisplay: formatPrice(product.price)
           })));
         }

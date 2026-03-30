@@ -5,6 +5,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
 import SEO from '../components/SEO';
+import { getGameValue } from '../services/api';
 
 const GAMES = {
   pokemon: { name: 'Pokémon TCG', icon: '🔴', color: '#ef4444' },
@@ -88,7 +89,8 @@ const Wishlist = () => {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
         {items.map(item => {
-          const game = GAMES[item.game] || { name: item.game, icon: '🎴', color: '#6366f1' };
+          const gameKey = getGameValue(item.game);
+          const game = GAMES[gameKey] || { name: item.game, icon: '🎴', color: '#6366f1' };
           
           return (
             <div 

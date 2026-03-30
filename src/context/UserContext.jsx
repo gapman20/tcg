@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authApi } from '../services/api';
 
 const USER_KEY = 'tcg_user';
 
@@ -21,19 +22,22 @@ export const UserProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = (email, name = '') => {
-    const userData = {
-      email: email.toLowerCase().trim(),
-      name: name.trim() || email.split('@')[0],
-      createdAt: new Date().toISOString()
-    };
-    localStorage.setItem(USER_KEY, JSON.stringify(userData));
-    setUser(userData);
-    return userData;
+  const login = async (email, password) => {
+    try {
+      const result = await authApi.login(email, password);
+      if (result.success) {
+        setUser(result.user);
+        return result;
+      }
+      return result;
+    } catch (e) {
+      console.error('Login error:', e);
+      return { success: false, error: e.message };
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem(USER_KEY);
+    authApi.logout();
     setUser(null);
   };
 

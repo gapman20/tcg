@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { X, Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { getGameValue } from '../services/api';
 
 const CartDrawer = () => {
   const { items, subtotal, itemCount, isCartOpen, closeCart, updateQuantity, removeItem } = useCart();
@@ -41,7 +42,7 @@ const CartDrawer = () => {
                 </div>
                 <div className="cart-drawer-item-details">
                   <h4 className="cart-drawer-item-name">{item.name}</h4>
-                  <p className="cart-drawer-item-game">{item.game}</p>
+                  <p className="cart-drawer-item-game">{getGameValue(item.game)}</p>
                   <p className="cart-drawer-item-price">{formatPrice(item.price)}</p>
                 </div>
                 <div className="cart-drawer-item-actions">

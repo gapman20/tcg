@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { ShoppingCart } from 'lucide-react';
+import { getGameValue } from '../services/api';
 
 const Cart = () => {
   const { items, subtotal, itemCount, updateQuantity, removeItem, clearCart } = useCart();
@@ -40,7 +41,7 @@ const Cart = () => {
               <div className="cart-item-details">
                 <h3>{item.name}</h3>
                 <p className="cart-item-meta">
-                  {item.game} {item.rarity && `- ${item.rarity}`}
+                  {getGameValue(item.game)} {item.rarity && `- ${item.rarity}`}
                 </p>
                 <p className="cart-item-price">{formatPrice(item.price)}</p>
               </div>

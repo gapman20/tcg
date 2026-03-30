@@ -1,9 +1,9 @@
 // API Service
 // Cambia USE_API a true para usar el backend real
-// Cambia USE_API a false para usar localStorage
+// Cambia USE_API a false para usar localStorage (modo demo)
 
 const USE_API = true; // ⬅️ CAMBIA ESTA LÍNEA para activar API real
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 // Helper for making API requests
 async function apiRequest(endpoint, options = {}) {
@@ -40,19 +40,39 @@ async function apiRequest(endpoint, options = {}) {
   }
 }
 
+// Normalize game field from object to string
+export const normalizeGame = (item) => {
+  if (!item) return item;
+  const normalized = { ...item };
+  if (item.game && typeof item.game === 'object') {
+    normalized.game = item.game.name;
+    normalized.gameDisplayName = item.game.displayName;
+  }
+  return normalized;
+};
+
+// Helper to get game as string (handles both object and string formats)
+export const getGameValue = (game) => {
+  if (!game) return '';
+  if (typeof game === 'string') return game;
+  if (typeof game === 'object') return game.name || '';
+  return String(game);
+};
+
 // ─── Card API ────────────────────────────────────────────────────────────────
 export const cardApi = {
   getAll: async () => {
     if (USE_API) {
       const data = await apiRequest('/cards');
-      return data.cards || [];
+      return (data.cards || []).map(normalizeGame);
     }
     return JSON.parse(localStorage.getItem('tcg_cards') || '[]');
   },
 
   getById: async (id) => {
     if (USE_API) {
-      return await apiRequest(`/cards/${id}`);
+      const card = await apiRequest(`/cards/${id}`);
+      return normalizeGame(card);
     }
     const cards = JSON.parse(localStorage.getItem('tcg_cards') || '[]');
     return cards.find(c => c.id === id);
@@ -94,6 +114,78 @@ export const cardApi = {
   },
 };
 
+// ─── Product API (Sellados) ────────────────────────────────────────────────────────
+export const productApi = {
+  getAll: async () => {
+    if (USE_API) {
+      const data = await apiRequest('/products');
+      return (data.products || []).map(normalizeGame);
+    }
+    return JSON.parse(localStorage.getItem('tcg_sellados') || '[]');
+  },
+
+  getById: async (id) => {
+    if (USE_API) {
+      const product = await apiRequest(`/products/${id}`);
+      return normalizeGame(product);
+    }
+    const products = JSON.parse(localStorage.getItem('tcg_sellados') || '[]');
+    return products.find(p => p.id === id);
+  },
+
+  create: async (product) => {
+    if (USE_API) {
+      return await apiRequest('/products', { method: 'POST', body: JSON.stringify(product) });
+    }
+    const products = JSON.parse(localStorage.getItem('tcg_sellados') || '[]');
+    const newProduct = { ...product, id: `prod-${Date.now()}` };
+    products.unshift(newProduct);
+    localStorage.setItem('tcg_sellados', JSON.stringify(products));
+    return newProduct;
+  },
+
+  update: async (id, updates) => {
+    if (USE_API) {
+      return await apiRequest(`/products/${id}`, { method: 'PUT', body: JSON.stringify(updates) });
+    }
+    const products = JSON.parse(localStorage.getItem('tcg_sellados') || '[]');
+    const index = products.findIndex(p => p.id === id);
+    if (index !== -1) {
+      products[index] = { ...products[index], ...updates };
+      localStorage.setItem('tcg_sellados', JSON.stringify(products));
+      return products[index];
+    }
+    return null;
+  },
+
+  delete: async (id) => {
+    if (USE_API) {
+      return await apiRequest(`/products/${id}`, { method: 'DELETE' });
+    }
+    const products = JSON.parse(localStorage.getItem('tcg_sellados') || '[]');
+    const filtered = products.filter(p => p.id !== id);
+    localStorage.setItem('tcg_sellados', JSON.stringify(filtered));
+    return true;
+  },
+};
+
+// ─── Cart API ────────────────────────────────────────────────────────────────
+export const cartApi = {
+  get: () => {
+    return JSON.parse(localStorage.getItem('tcg_cart') || '[]');
+  },
+
+  save: (items) => {
+    localStorage.setItem('tcg_cart', JSON.stringify(items));
+    return items;
+  },
+
+  clear: () => {
+    localStorage.removeItem('tcg_cart');
+    return true;
+  },
+};
+
 // ─── Order API ───────────────────────────────────────────────────────────────
 export const orderApi = {
   getAll: async () => {
@@ -110,6 +202,14 @@ export const orderApi = {
       return data || [];
     }
     return JSON.parse(localStorage.getItem('tcg_orders') || '[]');
+  },
+
+  getById: async (id) => {
+    if (USE_API) {
+      return await apiRequest(`/orders/${id}`);
+    }
+    const orders = JSON.parse(localStorage.getItem('tcg_orders') || '[]');
+    return orders.find(o => o.id === id);
   },
 
   create: async (orderData) => {
@@ -145,9 +245,9 @@ export const orderApi = {
 
   lookup: async (orderId, email) => {
     if (USE_API) {
-      const orders = await apiRequest(`/orders/${orderId}`);
-      if (orders.customerEmail?.toLowerCase() === email.toLowerCase()) {
-        return orders;
+      const order = await apiRequest(`/orders/${orderId}`);
+      if (order.customerEmail?.toLowerCase() === email.toLowerCase()) {
+        return order;
       }
       return null;
     }
@@ -173,9 +273,24 @@ export const authApi = {
     if (password === storedPass) {
       localStorage.setItem('auth_token', 'local-token');
       localStorage.setItem('is_authenticated', 'true');
-      return { success: true, user: { email } };
+      localStorage.setItem('tcg_user', JSON.stringify({ email, name: 'Admin' }));
+      return { success: true, user: { email, name: 'Admin' } };
     }
     return { success: false };
+  },
+
+  adminLogin: async (email, password) => {
+    if (USE_API) {
+      const data = await apiRequest('/auth/admin/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+      if (data.token) {
+        localStorage.setItem('auth_token', data.token);
+        localStorage.setItem('is_authenticated', 'true');
+        localStorage.setItem('tcg_user', JSON.stringify(data.user));
+        return { success: true, user: data.user };
+      }
+      return { success: false };
+    }
+    return authApi.login(email, password);
   },
 
   register: async (email, password, name) => {
@@ -222,22 +337,31 @@ export const authApi = {
   },
 };
 
-// ─── Product API ──────────────────────────────────────────────────────────────
-export const productApi = {
-  getAll: async () => {
-    if (USE_API) {
-      const data = await apiRequest('/products');
-      return data.products || [];
-    }
-    return JSON.parse(localStorage.getItem('tcg_products') || '[]');
+// ─── Wishlist API ──────────────────────────────────────────────────────────────
+export const wishlistApi = {
+  get: () => {
+    return JSON.parse(localStorage.getItem('tcg_wishlist') || '[]');
   },
 
-  getById: async (id) => {
-    if (USE_API) {
-      return await apiRequest(`/products/${id}`);
+  add: (itemId) => {
+    const wishlist = JSON.parse(localStorage.getItem('tcg_wishlist') || '[]');
+    if (!wishlist.includes(itemId)) {
+      wishlist.push(itemId);
+      localStorage.setItem('tcg_wishlist', JSON.stringify(wishlist));
     }
-    const products = JSON.parse(localStorage.getItem('tcg_products') || '[]');
-    return products.find(p => p.id === id);
+    return wishlist;
+  },
+
+  remove: (itemId) => {
+    const wishlist = JSON.parse(localStorage.getItem('tcg_wishlist') || '[]');
+    const filtered = wishlist.filter(id => id !== itemId);
+    localStorage.setItem('tcg_wishlist', JSON.stringify(filtered));
+    return filtered;
+  },
+
+  clear: () => {
+    localStorage.removeItem('tcg_wishlist');
+    return true;
   },
 };
 
@@ -289,9 +413,11 @@ export const imageApi = {
 
 export default {
   cards: cardApi,
+  products: productApi,
+  cart: cartApi,
   orders: orderApi,
   auth: authApi,
-  products: productApi,
+  wishlist: wishlistApi,
   games: gameApi,
   site: siteApi,
   images: imageApi,

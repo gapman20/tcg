@@ -9,6 +9,7 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../components/Toast';
 import SEO from '../components/SEO';
+import { getGameValue } from '../services/api';
 
 const formatPrice = (value) => {
   if (typeof value === 'number') {
@@ -96,7 +97,7 @@ const ProductCard = ({ product, onAddToCart }) => {
       
       <div className="product-info">
         <div className="product-tags">
-          {product.game && <span className="product-tag">{product.game}</span>}
+          {product.game && <span className="product-tag">{getGameValue(product.game)}</span>}
           {product.set && <span className="product-tag">{product.set}</span>}
         </div>
         <h3 className="product-name">{product.name}</h3>

@@ -189,6 +189,7 @@ const Catalog = () => {
           setCardsData(cards.map(card => ({
             ...card,
             image: card.imageUrl,
+            game: typeof card.game === 'object' ? card.game.name : card.game,
             priceDisplay: formatPrice(card.price)
           })));
         }

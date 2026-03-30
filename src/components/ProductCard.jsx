@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useSite } from '../context/SiteContext';
 import { useToast } from './Toast';
+import { getGameValue } from '../services/api';
 
 const ProductCard = ({ card }) => {
   const { addItem } = useCart();
@@ -107,7 +108,7 @@ const ProductCard = ({ card }) => {
       </div>
       <div className="product-card-content">
         <h3 className="product-card-name">{card.name}</h3>
-        <p className="product-card-game">{card.game}</p>
+        <p className="product-card-game">{getGameValue(card.game)}</p>
         {card.set && <p className="product-card-set">{card.set}</p>}
         <div className="product-card-footer">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>

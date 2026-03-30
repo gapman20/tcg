@@ -1,89 +1,124 @@
 import React from 'react';
 
+const inputSt = {
+  width: '100%', padding: '12px 14px',
+  background: 'rgba(255,255,255,0.04)',
+  border: '1px solid var(--glass-border)',
+  borderRadius: '8px', color: 'var(--text-primary)',
+  fontFamily: 'var(--font-body)', fontSize: '0.95rem',
+  outline: 'none', resize: 'vertical',
+  transition: 'border-color 0.2s, box-shadow 0.2s',
+};
+
+const focus = e => { e.target.style.borderColor = 'var(--accent-gold)'; e.target.style.boxShadow = '0 0 0 3px rgba(212, 175, 55, 0.15)'; };
+const blur = e => { e.target.style.borderColor = 'var(--glass-border)'; e.target.style.boxShadow = 'none'; };
+
+const labelStyle = {
+  display: 'block',
+  fontSize: '0.78rem',
+  fontWeight: '700',
+  color: 'var(--text-secondary)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.5px',
+  marginBottom: '0.5rem'
+};
+
 const CheckoutForm = ({ formData, errors, onChange, onSubmit, loading }) => {
   return (
-    <form onSubmit={onSubmit} className="glass-card checkout-form">
-      <h3 style={{ marginBottom: '1.5rem' }}>Información de Envío</h3>
+    <form onSubmit={onSubmit} className="glass-card checkout-form" style={{ padding: '2rem' }}>
+      <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', fontWeight: '700', marginBottom: '1.5rem' }}>Información de Envío</h3>
       <div className="form-grid">
         <div className="form-grid-full">
-          <label className="form-label">Nombre completo</label>
+          <label style={labelStyle}>Nombre completo</label>
           <input 
             type="text" 
             name="name" 
             value={formData.name} 
             onChange={onChange} 
-            className={`form-input ${errors.name ? 'error' : ''}`}
             placeholder="Tu nombre completo"
+            style={inputSt}
+            onFocus={focus}
+            onBlur={blur}
           />
-          {errors.name && <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{errors.name}</span>}
+          {errors.name && <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>{errors.name}</span>}
         </div>
         <div className="form-grid-full">
-          <label className="form-label">Email</label>
+          <label style={labelStyle}>Email</label>
           <input 
             type="email" 
             name="email" 
             value={formData.email} 
             onChange={onChange} 
-            className={`form-input ${errors.email ? 'error' : ''}`}
             placeholder="tu@email.com"
+            style={inputSt}
+            onFocus={focus}
+            onBlur={blur}
           />
-          {errors.email && <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{errors.email}</span>}
+          {errors.email && <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>{errors.email}</span>}
         </div>
         <div className="form-grid-full">
-          <label className="form-label">Dirección</label>
+          <label style={labelStyle}>Dirección</label>
           <input 
             type="text" 
             name="street" 
             value={formData.street} 
             onChange={onChange} 
-            className={`form-input ${errors.street ? 'error' : ''}`}
             placeholder="Calle y número"
+            style={inputSt}
+            onFocus={focus}
+            onBlur={blur}
           />
-          {errors.street && <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{errors.street}</span>}
+          {errors.street && <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>{errors.street}</span>}
         </div>
         <div>
-          <label className="form-label">Ciudad</label>
+          <label style={labelStyle}>Ciudad</label>
           <input 
             type="text" 
             name="city" 
             value={formData.city} 
             onChange={onChange} 
-            className={`form-input ${errors.city ? 'error' : ''}`}
             placeholder="Ciudad"
+            style={inputSt}
+            onFocus={focus}
+            onBlur={blur}
           />
-          {errors.city && <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{errors.city}</span>}
+          {errors.city && <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>{errors.city}</span>}
         </div>
         <div>
-          <label className="form-label">Estado</label>
+          <label style={labelStyle}>Estado</label>
           <input 
             type="text" 
             name="state" 
             value={formData.state} 
             onChange={onChange} 
-            className={`form-input ${errors.state ? 'error' : ''}`}
             placeholder="Estado"
+            style={inputSt}
+            onFocus={focus}
+            onBlur={blur}
           />
-          {errors.state && <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{errors.state}</span>}
+          {errors.state && <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>{errors.state}</span>}
         </div>
         <div>
-          <label className="form-label">CP</label>
+          <label style={labelStyle}>CP</label>
           <input 
             type="text" 
             name="zip" 
             value={formData.zip} 
             onChange={onChange} 
-            className={`form-input ${errors.zip ? 'error' : ''}`}
             placeholder="Código postal"
+            style={inputSt}
+            onFocus={focus}
+            onBlur={blur}
           />
-          {errors.zip && <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>{errors.zip}</span>}
+          {errors.zip && <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>{errors.zip}</span>}
         </div>
         <div className="form-grid-full">
-          <label className="form-label">País</label>
+          <label style={labelStyle}>País</label>
           <select 
             name="country" 
             value={formData.country} 
             onChange={onChange} 
-            className="form-input"
+            style={inputSt}
           >
             <option value="MX">México</option>
             <option value="US">Estados Unidos</option>

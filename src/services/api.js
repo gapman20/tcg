@@ -2,7 +2,7 @@
 // Cambia USE_API a true para usar el backend real
 // Cambia USE_API a false para usar localStorage
 
-const USE_API = false; // ⬅️ CAMBIA ESTA LÍNEA para activar API real
+const USE_API = true; // ⬅️ CAMBIA ESTA LÍNEA para activar API real
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 // Helper for making API requests

@@ -1,31 +1,11 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-
-const ORDERS_KEY = 'tcg_orders';
+import { orderApi } from '../services/api';
 
 const OrderContext = createContext(null);
 
-const generateOrderId = () => {
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2, 6).toLowerCase();
-  return `ORD-${timestamp}-${random}`;
-};
-
-const loadOrders = () => {
-  try {
-    const saved = localStorage.getItem(ORDERS_KEY);
-    return saved ? JSON.parse(saved) : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveOrders = (orders) => {
-  localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-};
-
 export const OrderProvider = ({ children }) => {
   const [currentOrder, setCurrentOrder] = useState(null);
-  const [orderHistory, setOrderHistory] = useState(loadOrders);
+  const [orderHistory, setOrderHistory] = useState([]);
   const [lookupResult, setLookupResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -34,21 +14,8 @@ export const OrderProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const orderId = generateOrderId();
-      const order = {
-        id: orderId,
-        ...orderData,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      
-      const orders = loadOrders();
-      orders.unshift(order);
-      saveOrders(orders);
-      
+      const order = await orderApi.create(orderData);
       setCurrentOrder(order);
-      setOrderHistory(orders);
       return order;
     } catch (e) {
       setError(e.message);
@@ -63,22 +30,14 @@ export const OrderProvider = ({ children }) => {
     setError(null);
     setLookupResult(null);
     try {
-      const orders = loadOrders();
-      const order = orders.find(o => 
-        o.id === orderId && 
-        o.email?.toLowerCase() === email.toLowerCase()
-      );
-      
-      if (!order) {
-        setLookupResult(null);
-        return null;
+      const order = await orderApi.lookup(orderId, email);
+      if (order) {
+        setLookupResult(order);
       }
-      
-      setLookupResult(order);
       return order;
     } catch (e) {
       setError(e.message);
-      throw e;
+      return null;
     } finally {
       setLoading(false);
     }
@@ -88,9 +47,8 @@ export const OrderProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const orders = loadOrders();
-      const order = orders.find(o => o.id === orderId);
-      return order || null;
+      const order = await orderApi.getById(orderId);
+      return order;
     } catch (e) {
       setError(e.message);
       return null;
@@ -99,17 +57,13 @@ export const OrderProvider = ({ children }) => {
     }
   }, []);
 
-  const fetchOrderHistory = useCallback(async (userId) => {
+  const fetchOrderHistory = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const orders = loadOrders();
-      const userOrders = orders
-        .filter(o => o.userId === userId)
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      
-      setOrderHistory(userOrders);
-      return userOrders;
+      const orders = await orderApi.getMyOrders();
+      setOrderHistory(orders);
+      return orders;
     } catch (e) {
       setError(e.message);
       return [];
@@ -121,23 +75,11 @@ export const OrderProvider = ({ children }) => {
   const updateOrderStatus = useCallback(async (orderId, status) => {
     setLoading(true);
     try {
-      const orders = loadOrders();
-      const index = orders.findIndex(o => o.id === orderId);
-      
-      if (index !== -1) {
-        orders[index] = { 
-          ...orders[index], 
-          status, 
-          updatedAt: new Date().toISOString() 
-        };
-        saveOrders(orders);
-        
-        setOrderHistory(orders);
-        
-        if (currentOrder?.id === orderId) {
-          setCurrentOrder(prev => ({ ...prev, status }));
-        }
+      const order = await orderApi.updateStatus(orderId, status);
+      if (currentOrder?.id === orderId) {
+        setCurrentOrder(order);
       }
+      return order;
     } catch (e) {
       setError(e.message);
       throw e;

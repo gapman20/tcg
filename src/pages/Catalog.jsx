@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../components/Toast';
 import SEO from '../components/SEO';
+import { cardApi, gameApi } from '../services/api';
 
 const CARDS_KEY = 'tcg_cards';
 
@@ -177,19 +178,25 @@ const Catalog = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('grid');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const loadCards = () => {
+    const loadCards = async () => {
+      setLoading(true);
       try {
-        const stored = localStorage.getItem(CARDS_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setCardsData(parsed.map(normalizeCard));
-          }
+        const cards = await cardApi.getAll();
+        if (cards && cards.length > 0) {
+          setCardsData(cards.map(card => ({
+            ...card,
+            image: card.imageUrl,
+            game: typeof card.game === 'object' ? card.game.name : card.game,
+            priceDisplay: formatPrice(card.price)
+          })));
         }
       } catch (e) {
-        console.error('Error loading cards from localStorage:', e);
+        console.error('Error loading cards from API:', e);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -197,7 +204,17 @@ const Catalog = () => {
     
     const handleStorageChange = (e) => {
       if (e.key === CARDS_KEY) {
-        loadCards();
+        try {
+          const stored = localStorage.getItem(CARDS_KEY);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setCardsData(parsed.map(normalizeCard));
+            }
+          }
+        } catch (err) {
+          console.error('Error loading cards from localStorage:', err);
+        }
       }
     };
     

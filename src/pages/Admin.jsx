@@ -4,6 +4,7 @@ import { useToast } from '../components/Toast';
 import ImageUploader from '../components/ImageUploader';
 import scryfallApi from '../services/scryfallApi';
 import pokemonTcgApi, { formatPokemonCard } from '../services/pokemonTcgApi';
+import api, { getGameValue } from '../services/api';
 import {
   LayoutDashboard, FileText, Settings, Mail, Info,
   Save, RotateCcw, CheckCircle, AlertCircle, Eye,
@@ -241,7 +242,7 @@ const Admin = () => {
     }
   };
 
-  const importCard = (card) => {
+  const importCard = async (card) => {
     let newCard;
     
     if (selectedGame === 'pokemon') {
@@ -272,13 +273,24 @@ const Admin = () => {
       };
     }
     
-    setCards(prev => {
-      const updated = [newCard, ...prev];
-      saveCardsToStorage(updated);
-      return updated;
-    });
+    try {
+      const created = await api.cards.create(newCard);
+      const cardWithId = created.id ? created : newCard;
+      setCards(prev => {
+        const updated = [cardWithId, ...prev];
+        localStorage.setItem('tcg_cards', JSON.stringify(updated));
+        return updated;
+      });
+      setEditingCard(cardWithId.id);
+    } catch (err) {
+      setCards(prev => {
+        const updated = [newCard, ...prev];
+        localStorage.setItem('tcg_cards', JSON.stringify(updated));
+        return updated;
+      });
+      setEditingCard(newCard.id);
+    }
     
-    setEditingCard(newCard.id);
     setSearchResults([]);
     setSearchQuery('');
     toast.success(`"${card.name}" importada`);
@@ -296,49 +308,50 @@ const Admin = () => {
     { id: 'c6', name: 'Black Lotus - Rare', price: 15000, game: 'Magic', set: 'Alpha Edition', rarity: 'Rare', condition: 'LP', stock: 1, imageUrl: null, description: '', active: true },
   ];
 
-  // Load cards from localStorage when cards section is active
+  // Load cards from API when cards section is active
   useEffect(() => {
     if (active === 'cards' && cards.length === 0) {
       setCardsLoading(true);
-      try {
-        const savedCards = localStorage.getItem('tcg_cards');
-        if (savedCards) {
-          const cardsData = JSON.parse(savedCards);
-          if (Array.isArray(cardsData) && cardsData.length > 0) {
-            setCards(cardsData);
+      api.cards.getAll()
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            setCards(data);
           } else {
             setCards(sampleCards);
             saveCardsToStorage(sampleCards);
           }
-        } else {
-          setCards(sampleCards);
-          saveCardsToStorage(sampleCards);
-        }
-      } catch (err) {
-        console.error('Error loading cards:', err);
-        setCards([]);
-      } finally {
-        setCardsLoading(false);
-      }
+        })
+        .catch(err => {
+          console.error('Error loading cards:', err);
+          setCards([]);
+        })
+        .finally(() => {
+          setCardsLoading(false);
+        });
     }
   }, [active]);
 
   // Sync sellados and cards when entering campaigns section
   useEffect(() => {
     if (active === 'campaigns') {
-      const savedSellados = localStorage.getItem('tcg_sellados');
-      const savedCards = localStorage.getItem('tcg_cards');
-      if (savedSellados) setSellados(JSON.parse(savedSellados));
-      if (savedCards) setCards(JSON.parse(savedCards));
+      Promise.all([
+        api.products.getAll(),
+        api.cards.getAll()
+      ]).then(([selladosData, cardsData]) => {
+        setSellados(selladosData);
+        setCards(cardsData);
+      }).catch(err => {
+        console.error('Error syncing products for campaigns:', err);
+      });
     }
   }, [active]);
 
-  // Card CRUD operations (localStorage)
-  const saveCardsToStorage = (updatedCards) => {
+  // Card CRUD operations (using API)
+  const saveCardsToStorage = async (updatedCards) => {
     localStorage.setItem('tcg_cards', JSON.stringify(updatedCards));
   };
 
-  const createCard = () => {
+  const createCard = async () => {
     const newCard = {
       id: `card-${Date.now()}`,
       name: 'Nueva Carta',
@@ -352,29 +365,46 @@ const Admin = () => {
       active: true,
       createdAt: new Date().toISOString()
     };
-    setCards(prev => {
-      const updated = [newCard, ...prev];
-      saveCardsToStorage(updated);
-      return updated;
-    });
-    setEditingCard(newCard.id);
+    try {
+      const created = await api.cards.create(newCard);
+      const cardWithId = created.id ? created : newCard;
+      setCards(prev => {
+        const updated = [cardWithId, ...prev];
+        localStorage.setItem('tcg_cards', JSON.stringify(updated));
+        return updated;
+      });
+      setEditingCard(cardWithId.id);
+    } catch (err) {
+      console.error('Error creating card:', err);
+      toast.error('Error al crear carta');
+    }
   };
 
-  const updateCard = (cardId, field, value) => {
+  const updateCard = async (cardId, field, value) => {
     setCards(prev => {
       const updated = prev.map(c => c.id === cardId ? { ...c, [field]: value } : c);
-      saveCardsToStorage(updated);
+      localStorage.setItem('tcg_cards', JSON.stringify(updated));
       return updated;
     });
+    try {
+      await api.cards.update(cardId, { [field]: value });
+    } catch (err) {
+      console.error('Error updating card:', err);
+    }
   };
 
-  const deleteCard = (cardId) => {
+  const deleteCard = async (cardId) => {
     if (!confirm('¿Eliminar esta carta?')) return;
     setCards(prev => {
       const updated = prev.filter(c => c.id !== cardId);
-      saveCardsToStorage(updated);
+      localStorage.setItem('tcg_cards', JSON.stringify(updated));
       return updated;
     });
+    try {
+      await api.cards.delete(cardId);
+    } catch (err) {
+      console.error('Error deleting card:', err);
+    }
     if (editingCard === cardId) setEditingCard(null);
   };
 
@@ -404,34 +434,30 @@ const Admin = () => {
   useEffect(() => {
     if (active === 'sellados' && sellados.length === 0) {
       setSelladosLoading(true);
-      try {
-        const saved = localStorage.getItem('tcg_sellados');
-        if (saved) {
-          const data = JSON.parse(saved);
+      api.products.getAll()
+        .then(data => {
           if (Array.isArray(data) && data.length > 0) {
             setSellados(data);
           } else {
             setSellados(sampleSellados);
             saveSelladosToStorage(sampleSellados);
           }
-        } else {
-          setSellados(sampleSellados);
-          saveSelladosToStorage(sampleSellados);
-        }
-      } catch (err) {
-        console.error('Error loading sellados:', err);
-        setSellados([]);
-      } finally {
-        setSelladosLoading(false);
-      }
+        })
+        .catch(err => {
+          console.error('Error loading sellados:', err);
+          setSellados([]);
+        })
+        .finally(() => {
+          setSelladosLoading(false);
+        });
     }
   }, [active]);
 
-  const saveSelladosToStorage = (updated) => {
+  const saveSelladosToStorage = async (updated) => {
     localStorage.setItem('tcg_sellados', JSON.stringify(updated));
   };
 
-  const createSellado = () => {
+  const createSellado = async () => {
     const newItem = {
       id: `sell-${Date.now()}`,
       name: 'Nuevo Producto Sellado',
@@ -446,29 +472,51 @@ const Admin = () => {
       active: true,
       createdAt: new Date().toISOString()
     };
-    setSellados(prev => {
-      const updated = [newItem, ...prev];
-      saveSelladosToStorage(updated);
-      return updated;
-    });
-    setEditingSellado(newItem.id);
+    try {
+      const created = await api.products.create(newItem);
+      const itemWithId = created.id ? created : newItem;
+      setSellados(prev => {
+        const updated = [itemWithId, ...prev];
+        localStorage.setItem('tcg_sellados', JSON.stringify(updated));
+        return updated;
+      });
+      setEditingSellado(itemWithId.id);
+    } catch (err) {
+      console.error('Error creating sellado:', err);
+      setSellados(prev => {
+        const updated = [newItem, ...prev];
+        localStorage.setItem('tcg_sellados', JSON.stringify(updated));
+        return updated;
+      });
+      setEditingSellado(newItem.id);
+    }
   };
 
-  const updateSellado = (id, field, value) => {
+  const updateSellado = async (id, field, value) => {
     setSellados(prev => {
       const updated = prev.map(item => item.id === id ? { ...item, [field]: value } : item);
-      saveSelladosToStorage(updated);
+      localStorage.setItem('tcg_sellados', JSON.stringify(updated));
       return updated;
     });
+    try {
+      await api.products.update(id, { [field]: value });
+    } catch (err) {
+      console.error('Error updating sellado:', err);
+    }
   };
 
-  const deleteSellado = (id) => {
+  const deleteSellado = async (id) => {
     if (confirm('¿Eliminar este producto?')) {
       setSellados(prev => {
         const updated = prev.filter(item => item.id !== id);
-        saveSelladosToStorage(updated);
+        localStorage.setItem('tcg_sellados', JSON.stringify(updated));
         return updated;
       });
+      try {
+        await api.products.delete(id);
+      } catch (err) {
+        console.error('Error deleting sellado:', err);
+      }
       setEditingSellado(null);
     }
   };
@@ -502,16 +550,16 @@ const Admin = () => {
         const activePages = pages.filter(p => p.active).length;
         const totalImages = [images.logo, images.heroBg, images.aboutHero, ...(images.portfolio || [])].filter(Boolean).length;
         
-        const sellados = JSON.parse(localStorage.getItem('tcg_sellados') || '[]');
-        const cards = JSON.parse(localStorage.getItem('tcg_cards') || '[]');
+        const dashboardSellados = JSON.parse(localStorage.getItem('tcg_sellados') || '[]');
+        const dashboardCards = JSON.parse(localStorage.getItem('tcg_cards') || '[]');
         const orders = JSON.parse(localStorage.getItem('tcg_orders') || '[]');
         
-        const totalProducts = sellados.length + cards.length;
-        const activeProducts = [...sellados, ...cards].filter(p => p.active !== false).length;
-        const discountedProducts = [...sellados, ...cards].filter(p => p.discountPercent > 0 || p.originalPrice).length;
-        const outOfStockProducts = [...sellados, ...cards].filter(p => p.stock === 0).length;
+        const totalProducts = dashboardSellados.length + dashboardCards.length;
+        const activeProducts = [...dashboardSellados, ...dashboardCards].filter(p => p.active !== false).length;
+        const discountedProducts = [...dashboardSellados, ...dashboardCards].filter(p => p.discountPercent > 0 || p.originalPrice).length;
+        const outOfStockProducts = [...dashboardSellados, ...dashboardCards].filter(p => p.stock === 0).length;
         
-        const inventoryValue = [...sellados, ...cards].reduce((sum, p) => sum + (p.price * (p.stock || 0)), 0);
+        const inventoryValue = [...dashboardSellados, ...dashboardCards].reduce((sum, p) => sum + (p.price * (p.stock || 0)), 0);
         
         const now = new Date();
         const todayOrders = orders.filter(o => {
@@ -566,8 +614,8 @@ const Admin = () => {
             {/* Stats Grid - TCG Metrics */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
               <StatCard label="Total Productos" val={totalProducts} sub={`${activeProducts} activos`} color="#8b5cf6" Icon={Package} />
-              <StatCard label="Sellados" val={sellados.length} sub="En inventario" color="#3b82f6" Icon={Package} />
-              <StatCard label="Cartas Sueltas" val={cards.length} sub="En inventario" color="#06b6d4" Icon={Layers} />
+              <StatCard label="Sellados" val={dashboardSellados.length} sub="En inventario" color="#3b82f6" Icon={Package} />
+              <StatCard label="Cartas Sueltas" val={dashboardCards.length} sub="En inventario" color="#06b6d4" Icon={Layers} />
               <StatCard label="Con Descuento" val={discountedProducts} sub="Productos en oferta" color="#10b981" Icon={Tag} />
               <StatCard label="Sin Stock" val={outOfStockProducts} sub="Agotados" color="#ef4444" Icon={AlertCircle} />
               <StatCard label="Valor Inventario" val={`$${inventoryValue.toLocaleString('es-MX')}`} sub="Pesos MXN" color="#f59e0b" Icon={TrendingUp} />
@@ -605,7 +653,7 @@ const Admin = () => {
                   <BarChart2 size={18} color="#3b82f6" /> Inventario por Juego
                 </h4>
                 {['pokemon', 'yugioh', 'magic', 'digimon', 'dragonball', 'onepiece'].map(game => {
-                  const gameProducts = [...sellados, ...cards].filter(p => p.game === game);
+                  const gameProducts = [...dashboardSellados, ...dashboardCards].filter(p => getGameValue(p.game) === game);
                   const percentage = totalProducts > 0 ? Math.round((gameProducts.length / totalProducts) * 100) : 0;
                   return (
                     <div key={game} style={{ marginBottom: '0.75rem' }}>
@@ -855,7 +903,7 @@ const Admin = () => {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <h5 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</h5>
-                        <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{item.game} • {item.type}</p>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{getGameValue(item.game)} • {item.type}</p>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
                           <span style={{ fontSize: '0.7rem', background: 'rgba(245,158,11,0.2)', color: '#f59e0b', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>${item.price}</span>
                           <span style={{ fontSize: '0.7rem', color: item.stock > 0 ? 'var(--text-secondary)' : '#ef4444' }}>Stock: {item.stock}</span>
@@ -1124,7 +1172,7 @@ const Admin = () => {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <h5 style={{ fontFamily: 'var(--font-heading)', fontSize: '0.95rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.name}</h5>
-                        <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{card.game} • {card.set}</p>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{getGameValue(card.game)} • {card.set}</p>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
                           <span style={{ fontSize: '0.7rem', background: card.rarity === 'Common' ? 'rgba(150,150,150,0.2)' : card.rarity === 'Rare' ? 'rgba(245,158,11,0.2)' : card.rarity === 'Ultra Rare' ? 'rgba(234,179,8,0.2)' : 'rgba(168,85,247,0.2)', color: card.rarity === 'Common' ? '#9ca3af' : card.rarity === 'Rare' ? '#f59e0b' : card.rarity === 'Ultra Rare' ? '#eab308' : '#a855f7', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>{card.rarity}</span>
                           <span style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 'bold' }}>${card.price}</span>
@@ -1280,8 +1328,8 @@ const Admin = () => {
           return now >= start && now <= end;
         });
 
-        const allSellados = JSON.parse(localStorage.getItem('tcg_sellados') || '[]');
-        const allCards = JSON.parse(localStorage.getItem('tcg_cards') || '[]');
+        const allSellados = sellados;
+        const allCards = cards;
         const allProducts = [...allSellados.map(s => ({ id: s.id, name: s.name, game: s.game, type: 'sellado' })), ...allCards.map(c => ({ id: c.id, name: c.name, game: c.game, type: 'carta' }))];
         const selectedProducts = selectedCampaign?.selectedProducts || [];
         const productScope = selectedProducts.length === 0 ? 'all' : 'selected';
@@ -1466,7 +1514,7 @@ const Admin = () => {
                               }} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</span>
-                                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{product.game} • {product.type}</span>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{getGameValue(product.game)} • {product.type}</span>
                               </div>
                             </label>
                           ))}

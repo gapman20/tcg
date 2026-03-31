@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useOrder } from '../context/OrderContext';
 import { useUser } from '../context/UserContext';
+import { orderApi } from '../services/api';
 import { Package, Search } from 'lucide-react';
-
-const ORDER_STORAGE_KEY = 'tcg_orders';
 
 const OrderTracking = () => {
   const { orderId } = useParams();
@@ -27,13 +26,18 @@ const OrderTracking = () => {
   }, [user]);
 
   useEffect(() => {
-    if (isLoggedIn && user?.email) {
-      const allOrders = JSON.parse(localStorage.getItem(ORDER_STORAGE_KEY) || '[]');
-      const userOrdersList = allOrders.filter(order => 
-        order.email?.toLowerCase() === user.email.toLowerCase()
-      );
-      setUserOrders(userOrdersList);
-    }
+    const loadUserOrders = async () => {
+      if (isLoggedIn && user?.email) {
+        try {
+          const orders = await orderApi.getMyOrders();
+          setUserOrders(orders);
+        } catch (err) {
+          console.error('Error loading orders:', err);
+          setUserOrders([]);
+        }
+      }
+    };
+    loadUserOrders();
   }, [isLoggedIn, user]);
 
   const handleChange = (e) => {

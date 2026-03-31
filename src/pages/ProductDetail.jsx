@@ -5,9 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../components/Toast';
 import SEO from '../components/SEO';
-
-const SELLADOS_KEY = 'tcg_sellados';
-const CARDS_KEY = 'tcg_cards';
+import { cardApi, productApi, getGameValue } from '../services/api';
 
 const GAMES = {
   pokemon: { name: 'Pokémon TCG', icon: '🔴', color: '#ef4444' },
@@ -44,18 +42,54 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadProduct = () => {
+    const loadProduct = async () => {
+      setLoading(true);
       try {
-        const sellados = JSON.parse(localStorage.getItem(SELLADOS_KEY) || '[]');
-        const cards = JSON.parse(localStorage.getItem(CARDS_KEY) || '[]');
-        
-        const allProducts = [...sellados, ...cards];
-        const found = allProducts.find(p => p.id === id);
-        
+        let found = null;
+        let isSealed = false;
+
+        try {
+          const card = await cardApi.getById(id);
+          if (card) {
+            found = {
+              ...card,
+              image: card.imageUrl,
+              game: typeof card.game === 'object' ? card.game.name : card.game
+            };
+            isSealed = false;
+          }
+        } catch (e) {
+          // No es carta
+        }
+
+        if (!found) {
+          try {
+            const prod = await productApi.getById(id);
+            if (prod) {
+              found = {
+                ...prod,
+                image: prod.imageUrl,
+                game: typeof prod.game === 'object' ? prod.game.name : prod.game
+              };
+              isSealed = true;
+            }
+          } catch (e) {
+            // No es producto
+          }
+        }
+
         if (found) {
-          setProduct(found);
+          setProduct({ ...found, isSealed });
           
-          const related = allProducts
+          const allCards = await cardApi.getAll();
+          const allProducts = await productApi.getAll();
+          const allItems = [...allCards, ...allProducts].map(item => ({
+            ...item,
+            image: item.imageUrl,
+            game: typeof item.game === 'object' ? item.game.name : item.game
+          }));
+
+          const related = allItems
             .filter(p => p.game === found.game && p.id !== found.id)
             .slice(0, 4);
           setRelatedProducts(related);
@@ -139,10 +173,11 @@ const ProductDetail = () => {
     );
   }
 
-  const game = GAMES[product.game] || { name: product.game, icon: '🎴', color: '#6366f1' };
+  const gameKey = typeof product.game === 'object' ? product.game.name : product.game;
+  const game = GAMES[gameKey] || { name: product.game, icon: '🎴', color: '#6366f1' };
   const hasDiscount = product.discountPercent > 0 || (product.originalPrice && product.originalPrice > product.price);
   const discountPercent = product.discountPercent || (product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0);
-  const isSealed = !product.rarity;
+  const isSealed = product.isSealed;
   const rarityColor = product.rarity ? RARITY_COLORS[product.rarity] : null;
 
   return (
@@ -294,7 +329,7 @@ const ProductDetail = () => {
                   {related.image || related.imageUrl ? (
                     <img src={related.image || related.imageUrl} alt={related.name} />
                   ) : (
-                    GAMES[related.game]?.icon || '🎴'
+                    GAMES[getGameValue(related.game)]?.icon || '🎴'
                   )}
                 </div>
                 <p className="related-set">{related.set}</p>

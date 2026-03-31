@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../components/Toast';
 import SEO from '../components/SEO';
+import { productApi } from '../services/api';
 
 const SELLADOS_KEY = 'tcg_sellados';
 
@@ -168,19 +169,25 @@ const Products = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState('grid');
   const [showMobileCart, setShowMobileCart] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const loadProducts = () => {
+    const loadProducts = async () => {
+      setLoading(true);
       try {
-        const stored = localStorage.getItem(SELLADOS_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setProductsData(parsed.map(normalizeSealedProduct));
-          }
+        const products = await productApi.getAll();
+        if (products && products.length > 0) {
+          setProductsData(products.map(product => ({
+            ...product,
+            image: product.imageUrl,
+            game: typeof product.game === 'object' ? product.game.name : product.game,
+            priceDisplay: formatPrice(product.price)
+          })));
         }
       } catch (e) {
-        console.error('Error loading sellados from localStorage:', e);
+        console.error('Error loading products from API:', e);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -188,7 +195,17 @@ const Products = () => {
     
     const handleStorageChange = (e) => {
       if (e.key === SELLADOS_KEY) {
-        loadProducts();
+        try {
+          const stored = localStorage.getItem(SELLADOS_KEY);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setProductsData(parsed.map(normalizeSealedProduct));
+            }
+          }
+        } catch (err) {
+          console.error('Error loading sellados from localStorage:', err);
+        }
       }
     };
     

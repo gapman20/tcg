@@ -23,3 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 .atl
+
+# Environment variables
+# DO NOT commit files with real secrets
+.env
+.env.local
+!.env.example
+!.env.development
+!.env.production

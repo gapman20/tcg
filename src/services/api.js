@@ -1,8 +1,7 @@
 // API Service
-// Cambia USE_API a true para usar el backend real
-// Cambia USE_API a false para usar localStorage (modo demo)
+// Configura VITE_USE_API en .env para cambiar entre API real y localStorage
 
-const USE_API = true; // ⬅️ CAMBIA ESTA LÍNEA para activar API real
+const USE_API = import.meta.env.VITE_USE_API === 'true';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 // Helper for making API requests

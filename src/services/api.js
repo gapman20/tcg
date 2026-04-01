@@ -4,6 +4,8 @@
 const USE_API = import.meta.env.VITE_USE_API === 'true';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+console.log(`🔌 API Mode: ${USE_API ? 'REAL API' : 'localStorage (demo)'} | URL: ${API_BASE_URL}`);
+
 // Helper for making API requests
 async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;

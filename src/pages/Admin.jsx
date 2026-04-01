@@ -194,6 +194,8 @@ const Admin = () => {
   const [cards, setCards] = useState([]);
   const [cardsLoading, setCardsLoading] = useState(false);
   const [editingCard, setEditingCard] = useState(null);
+  const [creatingCard, setCreatingCard] = useState(false);
+  const [newCardId, setNewCardId] = useState(null);
   
   // Sellados state for sealed products
   const [sellados, setSellados] = useState([]);
@@ -352,8 +354,14 @@ const Admin = () => {
   };
 
   const createCard = async () => {
+    if (creatingCard) return;
+    
+    const tempId = `card-${Date.now()}`;
+    setCreatingCard(true);
+    setNewCardId(tempId);
+    
     const newCard = {
-      id: `card-${Date.now()}`,
+      id: tempId,
       name: 'Nueva Carta',
       game: 'Pokemon',
       set: '',
@@ -365,18 +373,21 @@ const Admin = () => {
       active: true,
       createdAt: new Date().toISOString()
     };
+    
+    setCards(prev => [newCard, ...prev]);
+    
     try {
       const created = await api.cards.create(newCard);
       const cardWithId = created.id ? created : newCard;
-      setCards(prev => {
-        const updated = [cardWithId, ...prev];
-        localStorage.setItem('tcg_cards', JSON.stringify(updated));
-        return updated;
-      });
+      setCards(prev => prev.map(c => c.id === tempId ? cardWithId : c));
       setEditingCard(cardWithId.id);
+      setNewCardId(null);
     } catch (err) {
       console.error('Error creating card:', err);
       toast.error('Error al crear carta');
+      setCards(prev => prev.filter(c => c.id !== tempId));
+    } finally {
+      setCreatingCard(false);
     }
   };
 
@@ -1141,18 +1152,28 @@ const Admin = () => {
             <div style={{ display: 'grid', gridTemplateColumns: splitView ? '1fr 1fr' : 'minmax(350px, 450px) 1fr', gap: '2rem', alignItems: 'start' }}>
               {/* Card List */}
               <div>
-                <button onClick={createCard} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--glass-bg)', border: '1px dashed var(--glass-border)', borderRadius: '10px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
-                  <Plus size={18} /> Nueva Carta Manual
+                <button onClick={createCard} disabled={creatingCard} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: creatingCard ? 'rgba(59,130,246,0.2)' : 'var(--glass-bg)', border: `1px dashed ${creatingCard ? 'var(--accent-primary)' : 'var(--glass-border)'}`, borderRadius: '10px', color: creatingCard ? 'var(--accent-primary)' : 'var(--text-primary)', cursor: creatingCard ? 'wait' : 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)', transition: 'all 0.3s' }}>
+                  {creatingCard ? (
+                    <>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ animation: 'spin 1s linear infinite' }}><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20" /><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
+                      Creando...
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={18} /> Nueva Carta Manual
+                    </>
+                  )}
                 </button>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: 'calc(100vh - 320px)', overflowY: 'auto' }}>
                   {cards.map(card => (
                     <div key={card.id}
                       onClick={() => setEditingCard(card.id)}
+                      className={newCardId === card.id ? 'card-new-animation' : ''}
                       style={{
                         padding: '1rem',
-                        background: editingCard === card.id ? 'rgba(245,158,11,0.15)' : 'var(--glass-bg)',
-                        border: `1px solid ${editingCard === card.id ? 'var(--accent-gold)' : 'var(--glass-border)'}`,
+                        background: editingCard === card.id ? 'rgba(245,158,11,0.15)' : newCardId === card.id ? 'rgba(59,130,246,0.15)' : 'var(--glass-bg)',
+                        border: `1px solid ${editingCard === card.id ? 'var(--accent-gold)' : newCardId === card.id ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
                         borderRadius: '10px',
                         cursor: 'pointer',
                         display: 'flex',
@@ -1161,7 +1182,7 @@ const Admin = () => {
                         transition: 'all 0.2s',
                       }}
                       onMouseEnter={e => { if (editingCard !== card.id) e.currentTarget.style.borderColor = 'var(--accent-gold)'; }}
-                      onMouseLeave={e => { if (editingCard !== card.id) e.currentTarget.style.borderColor = 'var(--glass-border)'; }}
+                      onMouseLeave={e => { if (editingCard !== card.id) e.currentTarget.style.borderColor = newCardId === card.id ? 'var(--accent-primary)' : 'var(--glass-border)'; }}
                     >
                       <div style={{ width: '60px', height: '84px', borderRadius: '6px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {card.imageUrl ? (
@@ -2020,6 +2041,7 @@ const Admin = () => {
   };
 
   return (
+    <>
     <div style={{ display: 'flex', minHeight: 'calc(100vh - var(--nav-height))', background: 'var(--bg-primary)' }}>
 
       {/* ── Sidebar ─────────────────────────── */}
@@ -2111,6 +2133,22 @@ const Admin = () => {
         )}
       </div>
     </div>
+    
+    <style>{`
+      @keyframes cardNewAnimation {
+        0% { transform: translateY(-20px); opacity: 0; }
+        50% { transform: translateY(5px); box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+        100% { transform: translateY(0); opacity: 1; }
+      }
+      .card-new-animation {
+        animation: cardNewAnimation 0.6s ease-out forwards;
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `}</style>
+    </>
   );
 };
 

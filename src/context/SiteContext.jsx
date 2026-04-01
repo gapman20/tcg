@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CartProvider } from './CartContext';
 import { OrderProvider } from './OrderContext';
+import { authApi } from '../services/api';
 
 const AUTH_KEY = 'is_authenticated';
 const ADMIN_PASS_KEY = 'admin_password';
@@ -442,18 +443,32 @@ export const SiteProvider = ({ children }) => {
   };
 
   const login = async (email, pass) => {
-    const storedPass = localStorage.getItem(ADMIN_PASS_KEY) || 'admin123';
-    if (pass === storedPass) {
-      localStorage.setItem(AUTH_KEY, 'true');
-      setIsAuthenticated(true);
-      setUser({ email, isAdmin: true });
-      return true;
+    if (import.meta.env.VITE_USE_API === 'true') {
+      const result = await authApi.adminLogin(email, pass);
+      if (result.success) {
+        localStorage.setItem(AUTH_KEY, 'true');
+        setIsAuthenticated(true);
+        setUser({ email, isAdmin: true });
+        return true;
+      }
+      return false;
+    } else {
+      const storedPass = localStorage.getItem(ADMIN_PASS_KEY) || 'admin123';
+      if (pass === storedPass) {
+        localStorage.setItem(AUTH_KEY, 'true');
+        localStorage.setItem('auth_token', 'local-admin-token');
+        setIsAuthenticated(true);
+        setUser({ email, isAdmin: true });
+        return true;
+      }
+      return false;
     }
-    return false;
   };
 
   const logout = async () => {
     localStorage.removeItem(AUTH_KEY);
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('tcg_user');
     setIsAuthenticated(false);
     setUser(null);
   };

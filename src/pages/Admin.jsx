@@ -5,6 +5,7 @@ import ImageUploader from '../components/ImageUploader';
 import scryfallApi from '../services/scryfallApi';
 import pokemonTcgApi, { formatPokemonCard } from '../services/pokemonTcgApi';
 import api, { getGameValue } from '../services/api';
+import Swal from 'sweetalert2';
 import {
   LayoutDashboard, FileText, Settings, Mail, Info,
   Save, RotateCcw, CheckCircle, AlertCircle, Eye,
@@ -14,6 +15,35 @@ import {
   Columns, ArrowUp, ArrowDown, Bold, List, BarChart, Lock,
   Gamepad2, Layers, Tag, Calendar, Percent, Search
 } from 'lucide-react';
+
+const showDeleteAlert = (itemType = 'este elemento') => {
+  return Swal.fire({
+    title: '¿Eliminar?',
+    text: `¿Estás seguro de que deseas eliminar ${itemType}?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar',
+    background: 'rgba(15, 23, 42, 0.95)',
+    color: '#fff',
+  });
+};
+
+const showSuccessAlert = (title, message) => {
+  Swal.fire({
+    title,
+    text: message,
+    icon: 'success',
+    confirmButtonColor: '#10b981',
+    confirmButtonText: 'Aceptar',
+    background: 'rgba(15, 23, 42, 0.95)',
+    color: '#fff',
+    timer: 2000,
+    showConfirmButton: true
+  });
+};
 
 // ─── Shared input style ───────────────────────────────────────────────────────
 const inputSt = {
@@ -194,11 +224,16 @@ const Admin = () => {
   const [cards, setCards] = useState([]);
   const [cardsLoading, setCardsLoading] = useState(false);
   const [editingCard, setEditingCard] = useState(null);
+  const [creatingCard, setCreatingCard] = useState(false);
+  const [newCardId, setNewCardId] = useState(null);
+  const [savingCard, setSavingCard] = useState(false);
   
   // Sellados state for sealed products
   const [sellados, setSellados] = useState([]);
   const [selladosLoading, setSelladosLoading] = useState(false);
   const [editingSellado, setEditingSellado] = useState(null);
+  const [newSelladoId, setNewSelladoId] = useState(null);
+  const [savingSellado, setSavingSellado] = useState(false);
 
   // Campaigns state
   const [editingCampaign, setEditingCampaign] = useState(null);
@@ -276,18 +311,10 @@ const Admin = () => {
     try {
       const created = await api.cards.create(newCard);
       const cardWithId = created.id ? created : newCard;
-      setCards(prev => {
-        const updated = [cardWithId, ...prev];
-        localStorage.setItem('tcg_cards', JSON.stringify(updated));
-        return updated;
-      });
+      setCards(prev => [cardWithId, ...prev]);
       setEditingCard(cardWithId.id);
     } catch (err) {
-      setCards(prev => {
-        const updated = [newCard, ...prev];
-        localStorage.setItem('tcg_cards', JSON.stringify(updated));
-        return updated;
-      });
+      setCards(prev => [newCard, ...prev]);
       setEditingCard(newCard.id);
     }
     
@@ -314,11 +341,8 @@ const Admin = () => {
       setCardsLoading(true);
       api.cards.getAll()
         .then(data => {
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setCards(data);
-          } else {
-            setCards(sampleCards);
-            saveCardsToStorage(sampleCards);
           }
         })
         .catch(err => {
@@ -347,13 +371,15 @@ const Admin = () => {
   }, [active]);
 
   // Card CRUD operations (using API)
-  const saveCardsToStorage = async (updatedCards) => {
-    localStorage.setItem('tcg_cards', JSON.stringify(updatedCards));
-  };
-
   const createCard = async () => {
+    if (creatingCard) return;
+    
+    const tempId = `card-${Date.now()}`;
+    setCreatingCard(true);
+    setNewCardId(tempId);
+    
     const newCard = {
-      id: `card-${Date.now()}`,
+      id: tempId,
       name: 'Nueva Carta',
       game: 'Pokemon',
       set: '',
@@ -363,45 +389,52 @@ const Admin = () => {
       imageUrl: '',
       description: '',
       active: true,
+      isNew: true,
       createdAt: new Date().toISOString()
     };
+    
+    setNewCardId(tempId);
+    setCards(prev => [newCard, ...prev]);
+    setEditingCard(tempId);
+  };
+
+  const saveCard = async (cardId) => {
+    const card = cards.find(c => c.id === cardId);
+    if (!card) return;
+    
+    setSavingCard(true);
+    
     try {
-      const created = await api.cards.create(newCard);
-      const cardWithId = created.id ? created : newCard;
-      setCards(prev => {
-        const updated = [cardWithId, ...prev];
-        localStorage.setItem('tcg_cards', JSON.stringify(updated));
-        return updated;
-      });
-      setEditingCard(cardWithId.id);
+      if (card.isNew) {
+        const { isNew, ...cardData } = card;
+        const created = await api.cards.create(cardData);
+        const cardWithId = created.id ? created : { ...card, id: created.id || cardId };
+        setCards(prev => prev.map(c => c.id === cardId ? { ...cardWithId, isNew: false } : c));
+        setNewCardId(null);
+        showSuccessAlert('¡Carta guardada!', `La carta "${card.name}" se ha guardado correctamente.`);
+      } else {
+        await api.cards.update(cardId, card);
+        showSuccessAlert('¡Cambios guardados!', 'Los cambios se han guardado correctamente.');
+      }
     } catch (err) {
-      console.error('Error creating card:', err);
-      toast.error('Error al crear carta');
+      console.error('Error saving card:', err);
+      toast.error('Error al guardar la carta');
+    } finally {
+      setSavingCard(false);
     }
   };
 
-  const updateCard = async (cardId, field, value) => {
-    setCards(prev => {
-      const updated = prev.map(c => c.id === cardId ? { ...c, [field]: value } : c);
-      localStorage.setItem('tcg_cards', JSON.stringify(updated));
-      return updated;
-    });
-    try {
-      await api.cards.update(cardId, { [field]: value });
-    } catch (err) {
-      console.error('Error updating card:', err);
-    }
+  const updateCard = (cardId, field, value) => {
+    setCards(prev => prev.map(c => c.id === cardId ? { ...c, [field]: value } : c));
   };
 
   const deleteCard = async (cardId) => {
-    if (!confirm('¿Eliminar esta carta?')) return;
-    setCards(prev => {
-      const updated = prev.filter(c => c.id !== cardId);
-      localStorage.setItem('tcg_cards', JSON.stringify(updated));
-      return updated;
-    });
+    const result = await showDeleteAlert('esta carta');
+    if (!result.isConfirmed) return;
+    setCards(prev => prev.filter(c => c.id !== cardId));
     try {
       await api.cards.delete(cardId);
+      showSuccessAlert('¡Carta eliminada!', 'La carta ha sido eliminada correctamente.');
     } catch (err) {
       console.error('Error deleting card:', err);
     }
@@ -431,16 +464,39 @@ const Admin = () => {
     { id: 's6', name: 'Digimon BT-15 Booster Box', price: 2200, game: 'digimon', set: 'BT-15', type: 'booster-box', badge: 'Nuevo', discountPercent: 0, stock: 4, imageUrl: null, active: true },
   ];
 
+  // Load products and cards for dashboard on mount
+  useEffect(() => {
+    if (sellados.length === 0) {
+      api.products.getAll()
+        .then(data => {
+          if (Array.isArray(data)) {
+            setSellados(data);
+          }
+        })
+        .catch(err => {
+          console.error('Error loading sellados:', err);
+        });
+    }
+    if (cards.length === 0) {
+      api.cards.getAll()
+        .then(data => {
+          if (Array.isArray(data)) {
+            setCards(data);
+          }
+        })
+        .catch(err => {
+          console.error('Error loading cards:', err);
+        });
+    }
+  }, []);
+
   useEffect(() => {
     if (active === 'sellados' && sellados.length === 0) {
       setSelladosLoading(true);
       api.products.getAll()
         .then(data => {
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setSellados(data);
-          } else {
-            setSellados(sampleSellados);
-            saveSelladosToStorage(sampleSellados);
           }
         })
         .catch(err => {
@@ -453,13 +509,11 @@ const Admin = () => {
     }
   }, [active]);
 
-  const saveSelladosToStorage = async (updated) => {
-    localStorage.setItem('tcg_sellados', JSON.stringify(updated));
-  };
-
-  const createSellado = async () => {
+  const createSellado = () => {
+    const tempId = `sell-${Date.now()}`;
+    
     const newItem = {
-      id: `sell-${Date.now()}`,
+      id: tempId,
       name: 'Nuevo Producto Sellado',
       game: 'pokemon',
       set: '',
@@ -470,34 +524,43 @@ const Admin = () => {
       imageUrl: '',
       badge: '',
       active: true,
+      isNew: true,
       createdAt: new Date().toISOString()
     };
+    
+    setNewSelladoId(tempId);
+    setSellados(prev => [newItem, ...prev]);
+    setEditingSellado(tempId);
+  };
+
+  const saveSellado = async (selladoId) => {
+    const sellado = sellados.find(s => s.id === selladoId);
+    if (!sellado) return;
+    
+    setSavingSellado(true);
+    
     try {
-      const created = await api.products.create(newItem);
-      const itemWithId = created.id ? created : newItem;
-      setSellados(prev => {
-        const updated = [itemWithId, ...prev];
-        localStorage.setItem('tcg_sellados', JSON.stringify(updated));
-        return updated;
-      });
-      setEditingSellado(itemWithId.id);
+      if (sellado.isNew) {
+        const { isNew, ...selladoData } = sellado;
+        const created = await api.products.create(selladoData);
+        const selladoWithId = created.id ? created : { ...sellado, id: created.id || selladoId };
+        setSellados(prev => prev.map(s => s.id === selladoId ? { ...selladoWithId, isNew: false } : s));
+        setNewSelladoId(null);
+        showSuccessAlert('¡Producto guardado!', `El producto "${sellado.name}" se ha guardado correctamente.`);
+      } else {
+        await api.products.update(selladoId, sellado);
+        showSuccessAlert('¡Cambios guardados!', 'Los cambios se han guardado correctamente.');
+      }
     } catch (err) {
-      console.error('Error creating sellado:', err);
-      setSellados(prev => {
-        const updated = [newItem, ...prev];
-        localStorage.setItem('tcg_sellados', JSON.stringify(updated));
-        return updated;
-      });
-      setEditingSellado(newItem.id);
+      console.error('Error saving sellado:', err);
+      toast.error('Error al guardar el producto');
+    } finally {
+      setSavingSellado(false);
     }
   };
 
   const updateSellado = async (id, field, value) => {
-    setSellados(prev => {
-      const updated = prev.map(item => item.id === id ? { ...item, [field]: value } : item);
-      localStorage.setItem('tcg_sellados', JSON.stringify(updated));
-      return updated;
-    });
+    setSellados(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
     try {
       await api.products.update(id, { [field]: value });
     } catch (err) {
@@ -506,19 +569,18 @@ const Admin = () => {
   };
 
   const deleteSellado = async (id) => {
-    if (confirm('¿Eliminar este producto?')) {
-      setSellados(prev => {
-        const updated = prev.filter(item => item.id !== id);
-        localStorage.setItem('tcg_sellados', JSON.stringify(updated));
-        return updated;
-      });
-      try {
-        await api.products.delete(id);
-      } catch (err) {
-        console.error('Error deleting sellado:', err);
-      }
-      setEditingSellado(null);
+    const result = await showDeleteAlert('este producto');
+    if (!result.isConfirmed) return;
+    
+    const sellado = sellados.find(s => s.id === id);
+    setSellados(prev => prev.filter(item => item.id !== id));
+    try {
+      await api.products.delete(id);
+      showSuccessAlert('¡Producto eliminado!', sellado ? `"${sellado.name}" ha sido eliminado.` : 'Producto eliminado correctamente.');
+    } catch (err) {
+      console.error('Error deleting sellado:', err);
     }
+    setEditingSellado(null);
   };
 
   const uploadSelladoImage = async (id, file) => {
@@ -550,8 +612,8 @@ const Admin = () => {
         const activePages = pages.filter(p => p.active).length;
         const totalImages = [images.logo, images.heroBg, images.aboutHero, ...(images.portfolio || [])].filter(Boolean).length;
         
-        const dashboardSellados = JSON.parse(localStorage.getItem('tcg_sellados') || '[]');
-        const dashboardCards = JSON.parse(localStorage.getItem('tcg_cards') || '[]');
+        const dashboardSellados = sellados;
+        const dashboardCards = cards;
         const orders = JSON.parse(localStorage.getItem('tcg_orders') || '[]');
         
         const totalProducts = dashboardSellados.length + dashboardCards.length;
@@ -1033,6 +1095,77 @@ const Admin = () => {
                         Visible en tienda
                       </label>
                     </div>
+
+                    {/* Save Button */}
+                    <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                      {selectedSellado.isNew ? (
+                        <button 
+                          onClick={() => saveSellado(selectedSellado.id)}
+                          disabled={savingSellado}
+                          style={{ 
+                            width: '100%', 
+                            padding: '14px', 
+                            background: savingSellado ? 'rgba(16,185,129,0.5)' : 'var(--accent-primary)', 
+                            border: 'none', 
+                            borderRadius: '10px', 
+                            color: '#fff', 
+                            cursor: savingSellado ? 'wait' : 'pointer',
+                            fontSize: '1rem', 
+                            fontWeight: '700', 
+                            fontFamily: 'var(--font-heading)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          {savingSellado ? (
+                            <>
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ animation: 'spin 1s linear infinite' }}><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20" /><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
+                              Guardando...
+                            </>
+                          ) : (
+                            <>
+                              <Save size={18} /> Guardar Producto
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => saveSellado(selectedSellado.id)}
+                          disabled={savingSellado}
+                          style={{ 
+                            width: '100%', 
+                            padding: '12px', 
+                            background: 'rgba(16,185,129,0.1)', 
+                            border: '1px solid rgba(16,185,129,0.3)', 
+                            borderRadius: '10px', 
+                            color: '#10b981', 
+                            cursor: savingSellado ? 'wait' : 'pointer',
+                            fontSize: '0.9rem', 
+                            fontWeight: '700', 
+                            fontFamily: 'var(--font-heading)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          {savingSellado ? (
+                            <>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ animation: 'spin 1s linear infinite' }}><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20" /></svg>
+                              Guardando...
+                            </>
+                          ) : (
+                            <>
+                              <Save size={16} /> Guardar Cambios
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--glass-bg)', border: '1px dashed var(--glass-border)', borderRadius: '12px', color: 'var(--text-secondary)' }}>
@@ -1141,18 +1274,28 @@ const Admin = () => {
             <div style={{ display: 'grid', gridTemplateColumns: splitView ? '1fr 1fr' : 'minmax(350px, 450px) 1fr', gap: '2rem', alignItems: 'start' }}>
               {/* Card List */}
               <div>
-                <button onClick={createCard} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'var(--glass-bg)', border: '1px dashed var(--glass-border)', borderRadius: '10px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>
-                  <Plus size={18} /> Nueva Carta Manual
+                <button onClick={createCard} disabled={creatingCard} style={{ width: '100%', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: creatingCard ? 'rgba(59,130,246,0.2)' : 'var(--glass-bg)', border: `1px dashed ${creatingCard ? 'var(--accent-primary)' : 'var(--glass-border)'}`, borderRadius: '10px', color: creatingCard ? 'var(--accent-primary)' : 'var(--text-primary)', cursor: creatingCard ? 'wait' : 'pointer', fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'var(--font-heading)', transition: 'all 0.3s' }}>
+                  {creatingCard ? (
+                    <>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ animation: 'spin 1s linear infinite' }}><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20" /><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
+                      Creando...
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={18} /> Nueva Carta Manual
+                    </>
+                  )}
                 </button>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: 'calc(100vh - 320px)', overflowY: 'auto' }}>
                   {cards.map(card => (
                     <div key={card.id}
                       onClick={() => setEditingCard(card.id)}
+                      className={newCardId === card.id ? 'card-new-animation' : ''}
                       style={{
                         padding: '1rem',
-                        background: editingCard === card.id ? 'rgba(245,158,11,0.15)' : 'var(--glass-bg)',
-                        border: `1px solid ${editingCard === card.id ? 'var(--accent-gold)' : 'var(--glass-border)'}`,
+                        background: editingCard === card.id ? 'rgba(245,158,11,0.15)' : newCardId === card.id ? 'rgba(59,130,246,0.15)' : 'var(--glass-bg)',
+                        border: `1px solid ${editingCard === card.id ? 'var(--accent-gold)' : newCardId === card.id ? 'var(--accent-primary)' : 'var(--glass-border)'}`,
                         borderRadius: '10px',
                         cursor: 'pointer',
                         display: 'flex',
@@ -1161,7 +1304,7 @@ const Admin = () => {
                         transition: 'all 0.2s',
                       }}
                       onMouseEnter={e => { if (editingCard !== card.id) e.currentTarget.style.borderColor = 'var(--accent-gold)'; }}
-                      onMouseLeave={e => { if (editingCard !== card.id) e.currentTarget.style.borderColor = 'var(--glass-border)'; }}
+                      onMouseLeave={e => { if (editingCard !== card.id) e.currentTarget.style.borderColor = newCardId === card.id ? 'var(--accent-primary)' : 'var(--glass-border)'; }}
                     >
                       <div style={{ width: '60px', height: '84px', borderRadius: '6px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {card.imageUrl ? (
@@ -1303,6 +1446,77 @@ const Admin = () => {
                           <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '8px' }}>PNG, JPG, WebP • Máx 5MB</p>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Save Button */}
+                    <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                      {selectedCard.isNew ? (
+                        <button 
+                          onClick={() => saveCard(selectedCard.id)}
+                          disabled={savingCard}
+                          style={{ 
+                            width: '100%', 
+                            padding: '14px', 
+                            background: savingCard ? 'rgba(16,185,129,0.5)' : 'var(--accent-primary)', 
+                            border: 'none', 
+                            borderRadius: '10px', 
+                            color: '#fff', 
+                            cursor: savingCard ? 'wait' : 'pointer',
+                            fontSize: '1rem', 
+                            fontWeight: '700', 
+                            fontFamily: 'var(--font-heading)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          {savingCard ? (
+                            <>
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ animation: 'spin 1s linear infinite' }}><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20" /><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
+                              Guardando...
+                            </>
+                          ) : (
+                            <>
+                              <Save size={18} /> Guardar Carta
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => saveCard(selectedCard.id)}
+                          disabled={savingCard}
+                          style={{ 
+                            width: '100%', 
+                            padding: '12px', 
+                            background: 'rgba(16,185,129,0.1)', 
+                            border: '1px solid rgba(16,185,129,0.3)', 
+                            borderRadius: '10px', 
+                            color: '#10b981', 
+                            cursor: savingCard ? 'wait' : 'pointer',
+                            fontSize: '0.9rem', 
+                            fontWeight: '700', 
+                            fontFamily: 'var(--font-heading)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          {savingCard ? (
+                            <>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ animation: 'spin 1s linear infinite' }}><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20" /></svg>
+                              Guardando...
+                            </>
+                          ) : (
+                            <>
+                              <Save size={16} /> Guardar Cambios
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -2020,6 +2234,7 @@ const Admin = () => {
   };
 
   return (
+    <>
     <div style={{ display: 'flex', minHeight: 'calc(100vh - var(--nav-height))', background: 'var(--bg-primary)' }}>
 
       {/* ── Sidebar ─────────────────────────── */}
@@ -2111,6 +2326,22 @@ const Admin = () => {
         )}
       </div>
     </div>
+    
+    <style>{`
+      @keyframes cardNewAnimation {
+        0% { transform: translateY(-20px); opacity: 0; }
+        50% { transform: translateY(5px); box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+        100% { transform: translateY(0); opacity: 1; }
+      }
+      .card-new-animation {
+        animation: cardNewAnimation 0.6s ease-out forwards;
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `}</style>
+    </>
   );
 };
 
